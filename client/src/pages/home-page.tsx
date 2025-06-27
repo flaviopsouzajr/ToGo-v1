@@ -26,7 +26,7 @@ export default function HomePage() {
   });
 
   const featuredPlaces = places
-    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    .sort((a, b) => parseFloat(b.rating || "0") - parseFloat(a.rating || "0"))
     .slice(0, 3);
 
   const handlePlaceClick = (place: PlaceWithType) => {

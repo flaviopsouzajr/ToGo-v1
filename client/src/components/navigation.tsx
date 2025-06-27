@@ -49,6 +49,16 @@ export function Navigation() {
               >
                 Lugares
               </Link>
+              <Link
+                href="/about"
+                className={`transition-colors ${
+                  location === "/about" 
+                    ? "togo-primary font-medium" 
+                    : "text-gray-700 hover:text-primary"
+                }`}
+              >
+                Sobre
+              </Link>
             </div>
           </div>
           <div className="flex items-center space-x-4">
