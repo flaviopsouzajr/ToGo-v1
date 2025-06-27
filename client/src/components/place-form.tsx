@@ -361,7 +361,7 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
               <FormItem>
                 <FormLabel>Cidade *</FormLabel>
                 <Select 
-                  value={field.value ? field.value.toString() : ""} 
+                  value={field.value && field.value > 0 ? field.value.toString() : ""} 
                   onValueChange={handleCityChange} 
                   disabled={!selectedState}
                 >
