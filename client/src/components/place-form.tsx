@@ -9,6 +9,7 @@ import { states, getCitiesByState } from "@/lib/estados-cidades";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -26,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { StarRating } from "./star-rating";
-import { Upload, X } from "lucide-react";
+import { Tag } from "lucide-react";
 
 interface PlaceFormProps {
   onSuccess?: () => void;
@@ -37,10 +38,7 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedState, setSelectedState] = useState<string>("");
-  const [selectedFiles, setSelectedFiles] = useState<{
-    mainImage?: File;
-    itineraryFile?: File;
-  }>({});
+
   const [tagsInput, setTagsInput] = useState<string>("");
 
   const form = useForm<InsertPlace>({
@@ -76,13 +74,8 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
   const cities = selectedState ? getCitiesByState(selectedState) : [];
 
   const createPlaceMutation = useMutation({
-    mutationFn: async (data: FormData) => {
-      const res = await fetch("/api/places", {
-        method: "POST",
-        body: data,
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error(await res.text());
+    mutationFn: async (data: InsertPlace) => {
+      const res = await apiRequest("POST", "/api/places", data);
       return res.json();
     },
     onSuccess: () => {
@@ -92,7 +85,7 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
         description: "O lugar foi adicionado à sua lista.",
       });
       form.reset();
-      setSelectedFiles({});
+      setTagsInput("");
       onSuccess?.();
     },
     onError: (error: Error) => {
@@ -104,43 +97,22 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
     },
   });
 
-  const handleFileChange = (fieldName: string, file: File | null) => {
-    setSelectedFiles(prev => ({
-      ...prev,
-      [fieldName]: file || undefined,
-    }));
-  };
+
 
   const onSubmit = (data: InsertPlace) => {
-    const formData = new FormData();
-    
     // Process tags from input string
     const tags = tagsInput
       .split(',')
       .map(tag => tag.trim())
       .filter(tag => tag.length > 0);
     
-    // Add form data
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === 'tags') {
-        // Handle tags array specially
-        if (tags.length > 0) {
-          formData.append('tags', JSON.stringify(tags));
-        }
-      } else if (value !== undefined && value !== null) {
-        formData.append(key, value.toString());
-      }
-    });
+    // Prepare data with tags
+    const submitData = {
+      ...data,
+      tags: tags.length > 0 ? tags : []
+    };
 
-    // Add files
-    if (selectedFiles.mainImage) {
-      formData.append("mainImage", selectedFiles.mainImage);
-    }
-    if (selectedFiles.itineraryFile) {
-      formData.append("itineraryFile", selectedFiles.itineraryFile);
-    }
-
-    createPlaceMutation.mutate(formData);
+    createPlaceMutation.mutate(submitData);
   };
 
   const handleStateChange = (stateId: string) => {
@@ -329,73 +301,28 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Imagem Principal
-            </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleFileChange('mainImage', e.target.files?.[0] || null)}
-                className="hidden"
-                id="mainImage"
-              />
-              <label htmlFor="mainImage" className="cursor-pointer">
-                <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-2 text-sm text-gray-600">
-                  {selectedFiles.mainImage ? selectedFiles.mainImage.name : "Clique para fazer upload ou arraste a imagem"}
-                </p>
-              </label>
-              {selectedFiles.mainImage && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="mt-2"
-                  onClick={() => handleFileChange('mainImage', null)}
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Remover
-                </Button>
-              )}
-            </div>
-          </div>
+          <FormField
+            control={form.control}
+            name="mainImage"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>URL da Imagem Principal</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="https://exemplo.com/imagem.jpg" 
+                    {...field} 
+                    value={field.value || ""}
+                  />
+                </FormControl>
+                <FormDescription>
+                  Cole o link direto da imagem principal do lugar
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-          {!isRestaurant && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Anexar Roteiro
-              </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors">
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={(e) => handleFileChange('itineraryFile', e.target.files?.[0] || null)}
-                  className="hidden"
-                  id="itineraryFile"
-                />
-                <label htmlFor="itineraryFile" className="cursor-pointer">
-                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                  <p className="mt-2 text-sm text-gray-600">
-                    {selectedFiles.itineraryFile ? selectedFiles.itineraryFile.name : "Upload de arquivo PDF ou DOC"}
-                  </p>
-                </label>
-                {selectedFiles.itineraryFile && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="mt-2"
-                    onClick={() => handleFileChange('itineraryFile', null)}
-                  >
-                    <X className="h-4 w-4 mr-2" />
-                    Remover
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
+          <div></div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
