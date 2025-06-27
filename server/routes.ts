@@ -1,6 +1,9 @@
 import type { Express } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { insertPlaceSchema, insertPlaceTypeSchema } from "@shared/schema";
@@ -15,8 +18,43 @@ function requireAuth(req: any, res: any, next: any) {
   next();
 }
 
+// Configuração do multer para upload de arquivos de roteiro
+const itineraryStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = './uploads/itineraries';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'itinerary-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const uploadItinerary = multer({
+  storage: itineraryStorage,
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['.pdf', '.doc', '.docx'];
+    const fileExt = path.extname(file.originalname).toLowerCase();
+    
+    if (allowedTypes.includes(fileExt)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Apenas arquivos PDF, DOC e DOCX são permitidos para roteiros'));
+    }
+  },
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limite
+  }
+});
+
 export function registerRoutes(app: Express): Server {
   setupAuth(app);
+
+  // Servir arquivos de roteiro
+  app.use('/uploads/itineraries', express.static('./uploads/itineraries'));
 
 
 
@@ -111,9 +149,15 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.post("/api/places", requireAuth, async (req, res, next) => {
+  app.post("/api/places", requireAuth, uploadItinerary.single('itineraryFile'), async (req, res, next) => {
     try {
       const validData = insertPlaceSchema.parse(req.body);
+      
+      // Se um arquivo de roteiro foi enviado, adicionar o caminho
+      if (req.file) {
+        validData.itineraryFile = `/uploads/itineraries/${req.file.filename}`;
+      }
+      
       const place = await storage.createPlace(validData);
       res.status(201).json(place);
     } catch (error) {
@@ -121,13 +165,19 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  app.put("/api/places/:id", requireAuth, async (req, res, next) => {
+  app.put("/api/places/:id", requireAuth, uploadItinerary.single('itineraryFile'), async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
       console.log("Updating place with ID:", id);
       console.log("Request body:", req.body);
       
       const validData = insertPlaceSchema.parse(req.body);
+      
+      // Se um arquivo de roteiro foi enviado, adicionar o caminho
+      if (req.file) {
+        validData.itineraryFile = `/uploads/itineraries/${req.file.filename}`;
+      }
+      
       console.log("Validated data:", validData);
       
       const place = await storage.updatePlace(id, validData);

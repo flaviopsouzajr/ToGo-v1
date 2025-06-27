@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { StarRating } from "@/components/star-rating";
 import { PlaceWithType } from "@shared/schema";
-import { MapPin, Instagram, Clock, Check, X, Download, ExternalLink } from "lucide-react";
+import { MapPin, Instagram, Clock, Check, X, Download, ExternalLink, FileText } from "lucide-react";
 
 interface PlaceDetailsModalProps {
   place: PlaceWithType | null;
@@ -144,6 +144,25 @@ export function PlaceDetailsModal({ place, isOpen, onClose }: PlaceDetailsModalP
                         <span className="text-red-600 dark:text-red-400">Não possui rodízio</span>
                       </>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* Roteiro (apenas para não-restaurantes) */}
+              {place.type.name !== "Restaurante" && place.itineraryFile && (
+                <div>
+                  <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Roteiro</h3>
+                  <div className="flex items-center space-x-2">
+                    <FileText className="h-4 w-4 text-togo-primary" />
+                    <a
+                      href={place.itineraryFile}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-togo-primary hover:text-togo-secondary underline font-medium"
+                    >
+                      Visualizar ou Baixar Roteiro
+                    </a>
+                    <ExternalLink className="h-3 w-3 text-togo-primary" />
                   </div>
                 </div>
               )}

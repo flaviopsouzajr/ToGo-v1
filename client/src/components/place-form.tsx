@@ -38,8 +38,8 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedState, setSelectedState] = useState<string>("");
-
   const [tagsInput, setTagsInput] = useState<string>("");
+  const [itineraryFile, setItineraryFile] = useState<File | null>(null);
 
   const form = useForm<InsertPlace>({
     resolver: zodResolver(insertPlaceSchema),
@@ -119,8 +119,41 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
 
   const createPlaceMutation = useMutation({
     mutationFn: async (data: InsertPlace) => {
-      const res = await apiRequest("POST", "/api/places", data);
-      return res.json();
+      // Se há arquivo de roteiro, usar FormData
+      if (itineraryFile) {
+        const formData = new FormData();
+        
+        // Adicionar todos os campos do formulário
+        Object.entries(data).forEach(([key, value]) => {
+          if (value !== null && value !== undefined) {
+            if (Array.isArray(value)) {
+              formData.append(key, JSON.stringify(value));
+            } else {
+              formData.append(key, value.toString());
+            }
+          }
+        });
+        
+        // Adicionar o arquivo de roteiro
+        formData.append('itineraryFile', itineraryFile);
+        
+        const res = await fetch("/api/places", {
+          method: "POST",
+          credentials: "include",
+          body: formData
+        });
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(errorText || `HTTP error! status: ${res.status}`);
+        }
+        
+        return res.json();
+      } else {
+        // Usar JSON normal se não há arquivo
+        const res = await apiRequest("POST", "/api/places", data);
+        return res.json();
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/places"] });
@@ -144,8 +177,41 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
 
   const updatePlaceMutation = useMutation({
     mutationFn: async (data: InsertPlace) => {
-      const res = await apiRequest("PUT", `/api/places/${editingPlace!.id}`, data);
-      return res.json();
+      // Se há arquivo de roteiro, usar FormData
+      if (itineraryFile) {
+        const formData = new FormData();
+        
+        // Adicionar todos os campos do formulário
+        Object.entries(data).forEach(([key, value]) => {
+          if (value !== null && value !== undefined) {
+            if (Array.isArray(value)) {
+              formData.append(key, JSON.stringify(value));
+            } else {
+              formData.append(key, value.toString());
+            }
+          }
+        });
+        
+        // Adicionar o arquivo de roteiro
+        formData.append('itineraryFile', itineraryFile);
+        
+        const res = await fetch(`/api/places/${editingPlace!.id}`, {
+          method: "PUT",
+          credentials: "include",
+          body: formData
+        });
+        
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(errorText || `HTTP error! status: ${res.status}`);
+        }
+        
+        return res.json();
+      } else {
+        // Usar JSON normal se não há arquivo
+        const res = await apiRequest("PUT", `/api/places/${editingPlace!.id}`, data);
+        return res.json();
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/places"] });
@@ -321,6 +387,27 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
             </FormItem>
           )}
         />
+
+        {/* Campo de arquivo de roteiro - apenas para não-restaurantes */}
+        {!isRestaurant && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Anexar Roteiro (opcional)
+            </label>
+            <Input
+              type="file"
+              accept=".pdf,.doc,.docx"
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null;
+                setItineraryFile(file);
+              }}
+              className="cursor-pointer"
+            />
+            <p className="text-sm text-gray-500 mt-1">
+              Formatos aceitos: PDF, DOC, DOCX (máx. 10MB)
+            </p>
+          </div>
+        )}
 
         {isRestaurant && (
           <div className="bg-togo-lightest p-4 rounded-lg space-y-4">
