@@ -9,9 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, UserPlus, LogIn } from "lucide-react";
+import { MapPin, Shield, UserPlus, LogIn } from "lucide-react";
 import { Link } from "wouter";
-import logoToGo from "@assets/logo ToGo_1751056287064.png";
 
 type LoginData = Pick<InsertUser, "username" | "password">;
 
@@ -56,12 +55,11 @@ export default function AuthPage() {
       <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <Link href="/" className="inline-flex items-center justify-center mb-6">
-              <img 
-                src={logoToGo} 
-                alt="ToGo" 
-                className="h-16 w-auto"
-              />
+            <Link href="/" className="inline-flex items-center space-x-2 mb-6">
+              <div className="w-12 h-12 bg-togo-primary rounded-xl flex items-center justify-center">
+                <MapPin className="text-white w-7 h-7" />
+              </div>
+              <span className="text-3xl font-bold togo-primary">ToGo</span>
             </Link>
             <div className="w-16 h-16 bg-togo-primary rounded-xl flex items-center justify-center mx-auto mb-4">
               <Shield className="text-white w-8 h-8" />
@@ -204,13 +202,6 @@ export default function AuthPage() {
       >
         <div className="absolute inset-0 bg-togo-primary bg-opacity-80 flex items-center justify-center">
           <div className="text-white text-center max-w-md">
-            <div className="mb-8 flex justify-center">
-              <img 
-                src={logoToGo} 
-                alt="ToGo" 
-                className="h-24 w-auto filter brightness-0 invert"
-              />
-            </div>
             <h2 className="text-4xl font-bold mb-4">
               Gerencie seus lugares favoritos
             </h2>
