@@ -1,0 +1,87 @@
+Prompt Final Replit — Sistema Web Completo de Cadastro de Lugares para Visitar
+Descrição do Projeto:
+
+Crie um sistema web completo, minimalista, moderno e elegante para cadastro e visualização de lugares para visitar, como restaurantes, cidades, pontos turísticos, eventos, etc.
+
+Funcionalidades Obrigatórias:
+✅ Tela de Login de Administrador
+
+Apenas administradores podem acessar o painel de cadastro e gerenciamento.
+
+Autenticação simples (JWT ou sessão).
+
+✅ Tela Principal pública
+
+Exibe os lugares cadastrados em carrossel e cards.
+
+✅ Tela de Cadastro de Lugar, com:
+
+Nome do lugar (obrigatório).
+
+Tipo do Lugar (campo selecionável, obrigatório):
+
+As opções são carregadas de uma tabela de tipos cadastrados previamente.
+
+A lista deve ser dinâmica, atualizada conforme os tipos são adicionados ou removidos.
+
+Perfil do Instagram (opcional, aparece apenas se o tipo for configurado como "Restaurante").
+
+Possui Rodízio? (checkbox, aparece apenas se o tipo for configurado como "Restaurante").
+
+Estado e Cidade:
+
+Campos do tipo select dinâmico.
+
+As opções são carregadas do arquivo estados-cidades2.json.
+
+Após selecionar o Estado, o campo de Cidade exibe apenas as cidades correspondentes.
+
+Descrição (opcional).
+
+Anexar Roteiro (upload de arquivo, apenas se o tipo NÃO for "Restaurante").
+
+Imagem Principal (upload opcional).
+
+Avaliação / Nota (de 0 a 5 estrelas, opcional).
+
+Já Foi Visitado? (checkbox sim/não).
+
+✅ Tela de Listagem e Filtros, com:
+
+Filtros por Tipo de Lugar, Cidade, Estado, Rodízio, Já Visitado, Ordem de Cadastro.
+
+Visualização em cards, destaque visual para Restaurantes com Rodízio.
+
+Exibição de avaliação em estrelas, se houver.
+
+✅ Tela de Cadastro de Tipos de Lugar, exclusiva para administradores:
+
+Campo único: Descrição do Tipo do Lugar (exemplo: Restaurante, Cidade, Ponto Turístico, Evento, etc).
+
+Listagem dos tipos cadastrados com possibilidade de editar ou excluir.
+
+✅ Banco de Dados para armazenar todas as informações.
+
+✅ Design minimalista, moderno e elegante com as cores:
+
+less
+Copy
+Edit
+#4b7f52, #7dd181, #96e8bc, #b6f9c9, #c9ffe2
+Tecnologias Recomendadas:
+Frontend: React + TailwindCSS
+
+Backend: Node.js + Express ou Next.js
+
+Banco de Dados: SQLite ou Supabase
+
+Autenticação: JWT ou Sessão
+
+Carrossel: react-slick ou swiper.js
+
+Upload de Arquivo: Para imagem e roteiro
+
+Estado/Cidade: Carregamento dinâmico com base no JSON anexado
+
+Cadastro de Tipos de Lugar: Tela separada com CRUD básico
+
