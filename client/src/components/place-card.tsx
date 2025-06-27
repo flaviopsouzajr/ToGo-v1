@@ -68,13 +68,12 @@ export function PlaceCard({ place }: PlaceCardProps) {
           <div className="mb-4">
             <div className="flex flex-wrap gap-1">
               {place.tags.map((tag, index) => (
-                <Badge 
+                <span 
                   key={index} 
-                  variant="secondary" 
-                  className="text-xs px-2 py-1 bg-togo-primary/15 text-togo-primary border-none hover:bg-togo-primary/25 transition-colors"
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200 transition-colors cursor-default"
                 >
                   {tag}
-                </Badge>
+                </span>
               ))}
             </div>
           </div>
