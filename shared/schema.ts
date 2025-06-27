@@ -24,6 +24,7 @@ export const places = pgTable("places", {
   stateName: text("state_name").notNull(),
   cityId: integer("city_id").notNull(),
   cityName: text("city_name").notNull(),
+  address: text("address"),
   description: text("description"),
   instagramProfile: text("instagram_profile"),
   hasRodizio: boolean("has_rodizio").default(false),

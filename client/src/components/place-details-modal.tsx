@@ -53,9 +53,25 @@ export function PlaceDetailsModal({ place, isOpen, onClose }: PlaceDetailsModalP
               {/* Localização */}
               <div>
                 <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Localização</h3>
-                <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
-                  <MapPin className="h-4 w-4" />
-                  <span>{place.cityName}, {place.stateName}</span>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
+                    <MapPin className="h-4 w-4" />
+                    <span>{place.cityName}, {place.stateName}</span>
+                  </div>
+                  {place.address && (
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4 text-togo-primary" />
+                      <a
+                        href={`https://www.google.com/maps/search/?q=${encodeURIComponent(place.address + ', ' + place.cityName + ', ' + place.stateName)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-togo-primary hover:text-togo-secondary underline font-medium"
+                      >
+                        {place.address}
+                      </a>
+                      <ExternalLink className="h-3 w-3 text-togo-primary" />
+                    </div>
+                  )}
                 </div>
               </div>
 

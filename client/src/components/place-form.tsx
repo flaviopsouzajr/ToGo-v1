@@ -50,6 +50,7 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
       stateName: "",
       cityId: 0,
       cityName: "",
+      address: "",
       description: "",
       instagramProfile: "",
       hasRodizio: false,
@@ -68,6 +69,7 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
         stateName: editingPlace.stateName,
         cityId: editingPlace.cityId,
         cityName: editingPlace.cityName,
+        address: editingPlace.address || "",
         description: editingPlace.description || "",
         instagramProfile: editingPlace.instagramProfile || "",
         mainImage: editingPlace.mainImage || "",
@@ -297,6 +299,28 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="address"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Endereço (opcional)</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="Ex: Rua das Flores, 123, Centro" 
+                  {...field} 
+                  value={field.value || ""}
+                  onChange={(e) => field.onChange(e.target.value)}
+                />
+              </FormControl>
+              <FormDescription>
+                Informe o endereço completo ou aproximado para facilitar a localização no Google Maps
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         {isRestaurant && (
           <div className="bg-togo-lightest p-4 rounded-lg space-y-4">
