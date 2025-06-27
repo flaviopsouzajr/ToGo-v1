@@ -236,6 +236,21 @@ export default function PlacesPage() {
                           Já Visitado
                         </label>
                       </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="not-visited"
+                          checked={filters.isVisited === false}
+                          onCheckedChange={(checked) => 
+                            setFilters(prev => ({ 
+                              ...prev, 
+                              isVisited: checked ? false : null 
+                            }))
+                          }
+                        />
+                        <label htmlFor="not-visited" className="text-sm text-gray-600 cursor-pointer">
+                          Não Visitado
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
