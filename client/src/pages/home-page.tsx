@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Navigation } from "@/components/navigation";
 import { PlaceCard } from "@/components/place-card";
+import { PlaceDetailsModal } from "@/components/place-details-modal";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, MapPin, Star, Route } from "lucide-react";
@@ -8,6 +10,9 @@ import { Link } from "wouter";
 import { PlaceWithType } from "@shared/schema";
 
 export default function HomePage() {
+  const [selectedPlace, setSelectedPlace] = useState<PlaceWithType | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
   const { data: places = [], isLoading } = useQuery<PlaceWithType[]>({
     queryKey: ["/api/places"],
   });
@@ -21,6 +26,11 @@ export default function HomePage() {
   });
 
   const featuredPlaces = places.slice(0, 3);
+
+  const handlePlaceClick = (place: PlaceWithType) => {
+    setSelectedPlace(place);
+    setIsDetailsModalOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -77,7 +87,11 @@ export default function HomePage() {
         ) : featuredPlaces.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredPlaces.map((place) => (
-              <PlaceCard key={place.id} place={place} />
+              <PlaceCard 
+                key={place.id} 
+                place={place} 
+                onClick={() => handlePlaceClick(place)}
+              />
             ))}
           </div>
         ) : (
@@ -210,6 +224,16 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Place Details Modal */}
+      <PlaceDetailsModal
+        place={selectedPlace}
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          setIsDetailsModalOpen(false);
+          setSelectedPlace(null);
+        }}
+      />
     </div>
   );
 }
