@@ -90,6 +90,7 @@ The server handles both API routes and static file serving, with proper CORS and
 Changelog:
 - June 27, 2025. Initial setup
 - June 27, 2025. Fixed React hooks error in auth page by moving redirect logic to useEffect
+- June 27, 2025. Added tags/categories feature to place registration with visual display in cards
 
 ## User Preferences
 

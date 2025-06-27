@@ -168,6 +168,13 @@ export function registerRoutes(app: Express): Server {
       if (data.hasRodizio) data.hasRodizio = data.hasRodizio === "true";
       if (data.isVisited) data.isVisited = data.isVisited === "true";
       if (data.rating) data.rating = parseFloat(data.rating);
+      if (data.tags) {
+        try {
+          data.tags = JSON.parse(data.tags);
+        } catch {
+          data.tags = [];
+        }
+      }
 
       const validData = insertPlaceSchema.parse(data);
       const place = await storage.createPlace(validData);

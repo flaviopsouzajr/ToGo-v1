@@ -64,6 +64,22 @@ export function PlaceCard({ place }: PlaceCardProps) {
           </p>
         )}
         
+        {place.tags && place.tags.length > 0 && (
+          <div className="mb-4">
+            <div className="flex flex-wrap gap-1">
+              {place.tags.map((tag, index) => (
+                <Badge 
+                  key={index} 
+                  variant="outline" 
+                  className="text-xs px-2 py-1 bg-togo-primary/10 text-togo-primary border-togo-primary/20 hover:bg-togo-primary/20"
+                >
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+        
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {place.isVisited ? (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -41,6 +41,7 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
     mainImage?: File;
     itineraryFile?: File;
   }>({});
+  const [tagsInput, setTagsInput] = useState<string>("");
 
   const form = useForm<InsertPlace>({
     resolver: zodResolver(insertPlaceSchema),
@@ -55,12 +56,20 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
       instagramProfile: "",
       hasRodizio: false,
       isVisited: false,
+      tags: [],
     },
   });
 
   const { data: placeTypes = [] } = useQuery<PlaceType[]>({
     queryKey: ["/api/place-types"],
   });
+
+  // Initialize tags input when editing a place
+  useEffect(() => {
+    if (editingPlace?.tags && Array.isArray(editingPlace.tags)) {
+      setTagsInput(editingPlace.tags.join(', '));
+    }
+  }, [editingPlace]);
 
   const selectedPlaceType = placeTypes.find(t => t.id === form.watch("typeId"));
   const isRestaurant = selectedPlaceType?.name === "Restaurante";
@@ -105,9 +114,20 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
   const onSubmit = (data: InsertPlace) => {
     const formData = new FormData();
     
+    // Process tags from input string
+    const tags = tagsInput
+      .split(',')
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0);
+    
     // Add form data
     Object.entries(data).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
+      if (key === 'tags') {
+        // Handle tags array specially
+        if (tags.length > 0) {
+          formData.append('tags', JSON.stringify(tags));
+        }
+      } else if (value !== undefined && value !== null) {
         formData.append(key, value.toString());
       }
     });
@@ -292,6 +312,21 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
             </FormItem>
           )}
         />
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Tags/Categorias (opcional)
+          </label>
+          <Input
+            placeholder="Ex: Praia, Aventura, Culinária Italiana (separadas por vírgula)"
+            value={tagsInput}
+            onChange={(e) => setTagsInput(e.target.value)}
+            className="w-full"
+          />
+          <p className="text-sm text-gray-500 mt-1">
+            Digite as tags separadas por vírgula para categorizar o lugar
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>

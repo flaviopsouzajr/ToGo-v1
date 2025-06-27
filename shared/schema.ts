@@ -31,6 +31,7 @@ export const places = pgTable("places", {
   itineraryFile: text("itinerary_file"),
   rating: decimal("rating", { precision: 2, scale: 1 }),
   isVisited: boolean("is_visited").default(false),
+  tags: text("tags").array(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
