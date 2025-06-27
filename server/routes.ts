@@ -124,6 +124,22 @@ export function registerRoutes(app: Express): Server {
   app.put("/api/places/:id", requireAuth, async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);
+      const validData = insertPlaceSchema.parse(req.body);
+      const place = await storage.updatePlace(id, validData);
+      
+      if (!place) {
+        return res.status(404).json({ message: "Place not found" });
+      }
+      
+      res.json(place);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.put("/api/places/:id", requireAuth, async (req, res, next) => {
+    try {
+      const id = parseInt(req.params.id);
       const validData = insertPlaceSchema.partial().parse(req.body);
       const place = await storage.updatePlace(id, validData);
       

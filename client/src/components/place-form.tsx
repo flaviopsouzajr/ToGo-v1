@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { insertPlaceSchema, type InsertPlace, type PlaceType } from "@shared/schema";
+import { insertPlaceSchema, type InsertPlace, type PlaceType, type PlaceWithType } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { states, getCitiesByState } from "@/lib/estados-cidades";
@@ -31,7 +31,7 @@ import { Tag } from "lucide-react";
 
 interface PlaceFormProps {
   onSuccess?: () => void;
-  editingPlace?: any;
+  editingPlace?: PlaceWithType | null;
 }
 
 export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
@@ -43,7 +43,7 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
 
   const form = useForm<InsertPlace>({
     resolver: zodResolver(insertPlaceSchema),
-    defaultValues: editingPlace || {
+    defaultValues: {
       name: "",
       typeId: 0,
       stateId: 0,
@@ -57,6 +57,48 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
       tags: [],
     },
   });
+
+  // Pre-fill form when editing a place
+  useEffect(() => {
+    if (editingPlace) {
+      form.reset({
+        name: editingPlace.name,
+        typeId: editingPlace.typeId,
+        stateId: editingPlace.stateId,
+        stateName: editingPlace.stateName,
+        cityId: editingPlace.cityId,
+        cityName: editingPlace.cityName,
+        description: editingPlace.description || "",
+        instagramProfile: editingPlace.instagramProfile || "",
+        mainImage: editingPlace.mainImage || "",
+        hasRodizio: editingPlace.hasRodizio || false,
+        isVisited: editingPlace.isVisited || false,
+        rating: editingPlace.rating ? parseFloat(editingPlace.rating) : undefined,
+        tags: editingPlace.tags || [],
+      });
+      
+      // Set state and tags input
+      setSelectedState(editingPlace.stateId.toString());
+      setTagsInput(editingPlace.tags ? editingPlace.tags.join(", ") : "");
+    } else {
+      // Reset form when not editing
+      form.reset({
+        name: "",
+        typeId: 0,
+        stateId: 0,
+        stateName: "",
+        cityId: 0,
+        cityName: "",
+        description: "",
+        instagramProfile: "",
+        hasRodizio: false,
+        isVisited: false,
+        tags: [],
+      });
+      setSelectedState("");
+      setTagsInput("");
+    }
+  }, [editingPlace, form]);
 
   const { data: placeTypes = [] } = useQuery<PlaceType[]>({
     queryKey: ["/api/place-types"],
@@ -80,6 +122,7 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/places"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
       toast({
         title: "Lugar cadastrado com sucesso!",
         description: "O lugar foi adicionado à sua lista.",
@@ -91,6 +134,29 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
     onError: (error: Error) => {
       toast({
         title: "Erro ao cadastrar lugar",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updatePlaceMutation = useMutation({
+    mutationFn: async (data: InsertPlace) => {
+      const res = await apiRequest("PUT", `/api/places/${editingPlace!.id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/places"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      toast({
+        title: "Lugar atualizado com sucesso!",
+        description: "As alterações foram salvas.",
+      });
+      onSuccess?.();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao atualizar lugar",
         description: error.message,
         variant: "destructive",
       });
@@ -112,7 +178,11 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
       tags: tags.length > 0 ? tags : []
     };
 
-    createPlaceMutation.mutate(submitData);
+    if (editingPlace) {
+      updatePlaceMutation.mutate(submitData);
+    } else {
+      createPlaceMutation.mutate(submitData);
+    }
   };
 
   const handleStateChange = (stateId: string) => {
@@ -239,7 +309,14 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
                   <FormItem>
                     <FormLabel>Perfil do Instagram</FormLabel>
                     <FormControl>
-                      <Input placeholder="@restaurante_instagram" {...field} />
+                      <Input 
+                        placeholder="@restaurante_instagram" 
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
+                        value={field.value || ""} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -253,7 +330,7 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                     <FormControl>
                       <Checkbox
-                        checked={field.value}
+                        checked={field.value === true}
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
@@ -277,7 +354,11 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
                 <Textarea
                   placeholder="Descreva o lugar..."
                   className="min-h-[100px]"
-                  {...field}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  ref={field.ref}
+                  value={field.value || ""}
                 />
               </FormControl>
               <FormMessage />
@@ -354,7 +435,7 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
               <FormItem className="flex flex-row items-start space-x-3 space-y-0 pt-2">
                 <FormControl>
                   <Checkbox
-                    checked={field.value}
+                    checked={field.value === true}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
@@ -372,10 +453,13 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
           </Button>
           <Button 
             type="submit" 
-            disabled={createPlaceMutation.isPending}
+            disabled={createPlaceMutation.isPending || updatePlaceMutation.isPending}
             className="bg-togo-primary hover:bg-togo-secondary"
           >
-            {createPlaceMutation.isPending ? "Cadastrando..." : "Cadastrar Lugar"}
+            {editingPlace 
+              ? (updatePlaceMutation.isPending ? "Salvando..." : "Salvar Alterações")
+              : (createPlaceMutation.isPending ? "Cadastrando..." : "Cadastrar Lugar")
+            }
           </Button>
         </div>
       </form>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Navigation } from "@/components/navigation";
 import { PlaceForm } from "@/components/place-form";
@@ -23,6 +23,15 @@ export default function AdminPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isTypeDialogOpen, setIsTypeDialogOpen] = useState(false);
   const [editingType, setEditingType] = useState<PlaceType | null>(null);
+  const [editingPlace, setEditingPlace] = useState<PlaceWithType | null>(null);
+  const [activeTab, setActiveTab] = useState("places");
+
+  // Navigate to edit tab when editing a place
+  useEffect(() => {
+    if (editingPlace) {
+      setActiveTab("add-place");
+    }
+  }, [editingPlace]);
 
   const { data: places = [], isLoading: placesLoading } = useQuery<PlaceWithType[]>({
     queryKey: ["/api/places"],
@@ -164,7 +173,7 @@ export default function AdminPage() {
           <p className="text-gray-600">Gerencie lugares e tipos de lugares</p>
         </div>
 
-        <Tabs defaultValue="places" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>
             <TabsTrigger value="places" className="flex items-center">
               <MapPin className="mr-2 h-4 w-4" />
@@ -285,6 +294,14 @@ export default function AdminPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                className="text-blue-600 hover:text-blue-500"
+                                onClick={() => setEditingPlace(place)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 className="text-red-600 hover:text-red-500"
                                 onClick={() => deletePlaceMutation.mutate(place.id)}
                                 disabled={deletePlaceMutation.isPending}
@@ -302,14 +319,35 @@ export default function AdminPage() {
             </Card>
           </TabsContent>
 
-          {/* Add Place */}
+          {/* Add/Edit Place */}
           <TabsContent value="add-place">
             <Card>
               <CardHeader>
-                <CardTitle>Cadastrar Novo Lugar</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>
+                    {editingPlace ? "Editar Lugar" : "Cadastrar Novo Lugar"}
+                  </CardTitle>
+                  {editingPlace && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setEditingPlace(null)}
+                    >
+                      Cancelar Edição
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
-                <PlaceForm />
+                <PlaceForm 
+                  editingPlace={editingPlace}
+                  onSuccess={() => {
+                    setEditingPlace(null);
+                    toast({
+                      title: editingPlace ? "Lugar atualizado!" : "Lugar cadastrado!",
+                      description: editingPlace ? "As alterações foram salvas com sucesso." : "O lugar foi adicionado à sua lista.",
+                    });
+                  }}
+                />
               </CardContent>
             </Card>
           </TabsContent>
