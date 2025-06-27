@@ -151,7 +151,19 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/places", requireAuth, uploadItinerary.single('itineraryFile'), async (req, res, next) => {
     try {
-      const validData = insertPlaceSchema.parse(req.body);
+      // Converter tipos quando vem FormData (todos chegam como string)
+      const processedData = {
+        ...req.body,
+        typeId: req.body.typeId ? parseInt(req.body.typeId) : undefined,
+        stateId: req.body.stateId ? parseInt(req.body.stateId) : undefined,
+        cityId: req.body.cityId ? parseInt(req.body.cityId) : undefined,
+        hasRodizio: req.body.hasRodizio === 'true',
+        rating: req.body.rating ? parseFloat(req.body.rating) : undefined,
+        isVisited: req.body.isVisited === 'true',
+        tags: req.body.tags ? (typeof req.body.tags === 'string' ? JSON.parse(req.body.tags) : req.body.tags) : []
+      };
+      
+      const validData = insertPlaceSchema.parse(processedData);
       
       // Se um arquivo de roteiro foi enviado, adicionar o caminho
       if (req.file) {
@@ -171,7 +183,20 @@ export function registerRoutes(app: Express): Server {
       console.log("Updating place with ID:", id);
       console.log("Request body:", req.body);
       
-      const validData = insertPlaceSchema.parse(req.body);
+      // Converter tipos quando vem FormData (todos chegam como string)
+      const processedData = {
+        ...req.body,
+        typeId: req.body.typeId ? parseInt(req.body.typeId) : undefined,
+        stateId: req.body.stateId ? parseInt(req.body.stateId) : undefined,
+        cityId: req.body.cityId ? parseInt(req.body.cityId) : undefined,
+        hasRodizio: req.body.hasRodizio === 'true',
+        rating: req.body.rating ? parseFloat(req.body.rating) : undefined,
+        isVisited: req.body.isVisited === 'true',
+        tags: req.body.tags ? (typeof req.body.tags === 'string' ? JSON.parse(req.body.tags) : req.body.tags) : []
+      };
+      
+      console.log("Processed data:", processedData);
+      const validData = insertPlaceSchema.parse(processedData);
       
       // Se um arquivo de roteiro foi enviado, adicionar o caminho
       if (req.file) {
