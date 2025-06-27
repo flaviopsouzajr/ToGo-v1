@@ -208,6 +208,11 @@ export default function HomePage() {
                     Lugares
                   </Link>
                 </li>
+                <li>
+                  <Link href="/about" className="hover:text-white transition-colors">
+                    Sobre
+                  </Link>
+                </li>
               </ul>
             </div>
 
