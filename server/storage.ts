@@ -123,6 +123,7 @@ export class DatabaseStorage implements IStorage {
         itineraryFile: places.itineraryFile,
         rating: places.rating,
         isVisited: places.isVisited,
+        tags: places.tags,
         createdAt: places.createdAt,
         updatedAt: places.updatedAt,
         type: {
@@ -187,6 +188,7 @@ export class DatabaseStorage implements IStorage {
         itineraryFile: places.itineraryFile,
         rating: places.rating,
         isVisited: places.isVisited,
+        tags: places.tags,
         createdAt: places.createdAt,
         updatedAt: places.updatedAt,
         type: {
