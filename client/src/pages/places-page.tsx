@@ -15,10 +15,10 @@ import { states } from "@/lib/estados-cidades";
 export default function PlacesPage() {
   const [filters, setFilters] = useState({
     typeIds: [] as number[],
-    stateId: "",
+    stateId: "all",
     hasRodizio: null as boolean | null,
     isVisited: null as boolean | null,
-    minRating: "",
+    minRating: "all",
     search: "",
   });
 
@@ -30,10 +30,10 @@ export default function PlacesPage() {
       if (filters.typeIds.length > 0) {
         filters.typeIds.forEach(id => params.append("typeIds", id.toString()));
       }
-      if (filters.stateId) params.set("stateId", filters.stateId);
+      if (filters.stateId && filters.stateId !== "all") params.set("stateId", filters.stateId);
       if (filters.hasRodizio !== null) params.set("hasRodizio", filters.hasRodizio.toString());
       if (filters.isVisited !== null) params.set("isVisited", filters.isVisited.toString());
-      if (filters.minRating) params.set("minRating", filters.minRating);
+      if (filters.minRating && filters.minRating !== "all") params.set("minRating", filters.minRating);
       if (filters.search) params.set("search", filters.search);
 
       const res = await fetch(`/api/places?${params}`, { credentials: "include" });
@@ -58,10 +58,10 @@ export default function PlacesPage() {
   const clearFilters = () => {
     setFilters({
       typeIds: [],
-      stateId: "",
+      stateId: "all",
       hasRodizio: null,
       isVisited: null,
-      minRating: "",
+      minRating: "all",
       search: "",
     });
   };
@@ -141,7 +141,7 @@ export default function PlacesPage() {
                       <SelectValue placeholder="Selecione o estado" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todos os estados</SelectItem>
+                      <SelectItem value="all">Todos os estados</SelectItem>
                       {states.map((state) => (
                         <SelectItem key={state.id} value={state.id}>
                           {state.name}
@@ -163,7 +163,7 @@ export default function PlacesPage() {
                       <SelectValue placeholder="Qualquer avaliação" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Qualquer avaliação</SelectItem>
+                      <SelectItem value="all">Qualquer avaliação</SelectItem>
                       <SelectItem value="1">1+ estrelas</SelectItem>
                       <SelectItem value="2">2+ estrelas</SelectItem>
                       <SelectItem value="3">3+ estrelas</SelectItem>
