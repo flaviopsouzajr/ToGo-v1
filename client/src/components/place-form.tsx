@@ -62,7 +62,7 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
   // Pre-fill form when editing a place
   useEffect(() => {
     if (editingPlace) {
-      form.reset({
+      const formData = {
         name: editingPlace.name,
         typeId: editingPlace.typeId,
         stateId: editingPlace.stateId,
@@ -77,11 +77,21 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
         isVisited: editingPlace.isVisited || false,
         rating: editingPlace.rating ? parseFloat(editingPlace.rating) : undefined,
         tags: editingPlace.tags || [],
-      });
+      };
       
-      // Set state and tags input
+      // Reset form with new values
+      form.reset(formData);
+      
+      // Set additional state for the select components
       setSelectedState(editingPlace.stateId.toString());
       setTagsInput(editingPlace.tags ? editingPlace.tags.join(", ") : "");
+      
+      // Force update of form values for select fields
+      setTimeout(() => {
+        form.setValue("typeId", editingPlace.typeId);
+        form.setValue("stateId", editingPlace.stateId);
+        form.setValue("cityId", editingPlace.cityId);
+      }, 0);
     } else {
       // Reset form when not editing
       form.reset({
@@ -292,7 +302,10 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Tipo de Lugar *</FormLabel>
-                <Select onValueChange={(value) => field.onChange(parseInt(value))}>
+                <Select 
+                  value={field.value ? field.value.toString() : ""} 
+                  onValueChange={(value) => field.onChange(parseInt(value))}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione o tipo" />
@@ -319,7 +332,10 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Estado *</FormLabel>
-                <Select onValueChange={handleStateChange}>
+                <Select 
+                  value={selectedState} 
+                  onValueChange={handleStateChange}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione o estado" />
@@ -344,7 +360,11 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Cidade *</FormLabel>
-                <Select onValueChange={handleCityChange} disabled={!selectedState}>
+                <Select 
+                  value={field.value ? field.value.toString() : ""} 
+                  onValueChange={handleCityChange} 
+                  disabled={!selectedState}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder={
