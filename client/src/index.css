@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(140, 27%, 39%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(120, 43%, 69%);
+  --secondary-foreground: hsl(0, 0%, 0%);
+  --accent: hsl(148, 60%, 77%);
+  --accent-foreground: hsl(0, 0%, 0%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(140, 27%, 39%);
+  --radius: 0.5rem;
+  
+  /* ToGo Brand Colors */
+  --togo-primary: hsl(140, 27%, 39%);
+  --togo-secondary: hsl(120, 43%, 69%);
+  --togo-light: hsl(148, 60%, 77%);
+  --togo-lighter: hsl(147, 78%, 85%);
+  --togo-lightest: hsl(147, 100%, 91%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(140, 27%, 39%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .togo-primary {
+    color: var(--togo-primary);
+  }
+  
+  .bg-togo-primary {
+    background-color: var(--togo-primary);
+  }
+  
+  .togo-secondary {
+    color: var(--togo-secondary);
+  }
+  
+  .bg-togo-secondary {
+    background-color: var(--togo-secondary);
+  }
+  
+  .togo-light {
+    color: var(--togo-light);
+  }
+  
+  .bg-togo-light {
+    background-color: var(--togo-light);
+  }
+  
+  .togo-lighter {
+    color: var(--togo-lighter);
+  }
+  
+  .bg-togo-lighter {
+    background-color: var(--togo-lighter);
+  }
+  
+  .togo-lightest {
+    color: var(--togo-lightest);
+  }
+  
+  .bg-togo-lightest {
+    background-color: var(--togo-lightest);
+  }
+}
