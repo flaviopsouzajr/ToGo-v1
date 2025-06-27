@@ -1,6 +1,6 @@
 import { users, places, placeTypes, type User, type InsertUser, type Place, type InsertPlace, type PlaceType, type InsertPlaceType, type PlaceWithType } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, like, gte, inArray } from "drizzle-orm";
+import { eq, desc, and, like, gte, inArray, sql } from "drizzle-orm";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -36,9 +36,8 @@ export interface IStorage {
   // Stats
   getStats(): Promise<{
     totalPlaces: number;
-    restaurants: number;
-    cities: number;
     visited: number;
+    toVisit: number;
   }>;
   
   sessionStore: session.SessionStore;
@@ -239,34 +238,19 @@ export class DatabaseStorage implements IStorage {
 
   async getStats(): Promise<{
     totalPlaces: number;
-    restaurants: number;
-    cities: number;
     visited: number;
+    toVisit: number;
   }> {
-    const [totalPlaces] = await db.select({ count: places.id }).from(places);
+    const allPlaces = await db.select().from(places);
     
-    const [restaurants] = await db
-      .select({ count: places.id })
-      .from(places)
-      .innerJoin(placeTypes, eq(places.typeId, placeTypes.id))
-      .where(eq(placeTypes.name, "Restaurante"));
+    const totalPlaces = allPlaces.length;
+    const visited = allPlaces.filter(place => place.isVisited === true).length;
+    const toVisit = allPlaces.filter(place => place.isVisited === false).length;
     
-    const [cities] = await db
-      .select({ count: places.id })
-      .from(places)
-      .innerJoin(placeTypes, eq(places.typeId, placeTypes.id))
-      .where(eq(placeTypes.name, "Cidade"));
-    
-    const [visited] = await db
-      .select({ count: places.id })
-      .from(places)
-      .where(eq(places.isVisited, true));
-
     return {
-      totalPlaces: totalPlaces?.count || 0,
-      restaurants: restaurants?.count || 0,
-      cities: cities?.count || 0,
-      visited: visited?.count || 0,
+      totalPlaces,
+      visited,
+      toVisit,
     };
   }
 }

@@ -12,7 +12,11 @@ export default function HomePage() {
     queryKey: ["/api/places"],
   });
 
-  const { data: stats } = useQuery({
+  const { data: stats } = useQuery<{
+    totalPlaces: number;
+    visited: number;
+    toVisit: number;
+  }>({
     queryKey: ["/api/stats"],
   });
 
@@ -93,30 +97,24 @@ export default function HomePage() {
       {stats && (
         <div className="bg-togo-lightest py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center max-w-3xl mx-auto">
               <div>
-                <div className="text-3xl md:text-4xl font-bold togo-primary mb-2">
+                <div className="text-3xl md:text-4xl font-bold text-togo-primary mb-2">
                   {stats.totalPlaces}
                 </div>
                 <div className="text-gray-600">Lugares cadastrados</div>
               </div>
               <div>
-                <div className="text-3xl md:text-4xl font-bold togo-primary mb-2">
-                  {stats.restaurants}
-                </div>
-                <div className="text-gray-600">Restaurantes</div>
-              </div>
-              <div>
-                <div className="text-3xl md:text-4xl font-bold togo-primary mb-2">
-                  {stats.cities}
-                </div>
-                <div className="text-gray-600">Cidades</div>
-              </div>
-              <div>
-                <div className="text-3xl md:text-4xl font-bold togo-primary mb-2">
+                <div className="text-3xl md:text-4xl font-bold text-togo-primary mb-2">
                   {stats.visited}
                 </div>
                 <div className="text-gray-600">Já visitados</div>
+              </div>
+              <div>
+                <div className="text-3xl md:text-4xl font-bold text-togo-primary mb-2">
+                  {stats.toVisit}
+                </div>
+                <div className="text-gray-600">Para visitar</div>
               </div>
             </div>
           </div>
