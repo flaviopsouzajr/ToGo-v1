@@ -91,6 +91,8 @@ Changelog:
 - June 27, 2025. Initial setup
 - June 27, 2025. Fixed React hooks error in auth page by moving redirect logic to useEffect
 - June 27, 2025. Added tags/categories feature to place registration with visual display in cards
+- June 27, 2025. Improved tags visual design with elegant green rounded chips
+- June 27, 2025. Fixed statistics panel to show correct data: total places, visited, and to visit
 
 ## User Preferences
 
