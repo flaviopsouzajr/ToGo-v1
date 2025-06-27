@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Filter, MapPin } from "lucide-react";
+import { Search, Filter, MapPin, ChevronDown, ChevronUp } from "lucide-react";
 import { PlaceWithType, PlaceType } from "@shared/schema";
 import { states } from "@/lib/estados-cidades";
 
@@ -25,6 +25,7 @@ export default function PlacesPage() {
 
   const [selectedPlace, setSelectedPlace] = useState<PlaceWithType | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
 
   const { data: places = [], isLoading } = useQuery<PlaceWithType[]>({
     queryKey: ["/api/places", filters],
@@ -70,6 +71,11 @@ export default function PlacesPage() {
     });
   };
 
+  const handlePlaceClick = (place: PlaceWithType) => {
+    setSelectedPlace(place);
+    setIsModalOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
@@ -80,142 +86,160 @@ export default function PlacesPage() {
           <div className="lg:w-1/4">
             <Card className="sticky top-24">
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+                <CardTitle 
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
+                >
                   <span className="flex items-center">
                     <Filter className="mr-2 h-5 w-5" />
                     Filtros
+                    {isFiltersExpanded ? (
+                      <ChevronUp className="ml-2 h-4 w-4 text-gray-500" />
+                    ) : (
+                      <ChevronDown className="ml-2 h-4 w-4 text-gray-500" />
+                    )}
                   </span>
-                  <Button variant="ghost" size="sm" onClick={clearFilters}>
-                    Limpar
-                  </Button>
+                  {isFiltersExpanded && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        clearFilters();
+                      }}
+                    >
+                      Limpar
+                    </Button>
+                  )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Search */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Buscar
-                  </label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Nome do lugar..."
-                      value={filters.search}
-                      onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                      className="pl-10"
-                    />
+              {isFiltersExpanded && (
+                <CardContent className="space-y-6">
+                  {/* Search */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Buscar
+                    </label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Nome do lugar..."
+                        value={filters.search}
+                        onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                        className="pl-10"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Place Type */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Tipo de Lugar
-                  </label>
-                  <div className="space-y-2">
-                    {placeTypes.map((type) => (
-                      <div key={type.id} className="flex items-center space-x-2">
+                  {/* Place Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Tipo de Lugar
+                    </label>
+                    <div className="space-y-2">
+                      {placeTypes.map((type) => (
+                        <div key={type.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`type-${type.id}`}
+                            checked={filters.typeIds.includes(type.id)}
+                            onCheckedChange={(checked) => 
+                              handleTypeChange(type.id, checked as boolean)
+                            }
+                          />
+                          <label
+                            htmlFor={`type-${type.id}`}
+                            className="text-sm text-gray-600 cursor-pointer"
+                          >
+                            {type.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* State */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Estado
+                    </label>
+                    <Select value={filters.stateId} onValueChange={(value) => 
+                      setFilters(prev => ({ ...prev, stateId: value }))
+                    }>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o estado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os estados</SelectItem>
+                        {states.map((state) => (
+                          <SelectItem key={state.id} value={state.id}>
+                            {state.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Min Rating */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Avaliação Mínima
+                    </label>
+                    <Select value={filters.minRating} onValueChange={(value) => 
+                      setFilters(prev => ({ ...prev, minRating: value }))
+                    }>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a avaliação" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as avaliações</SelectItem>
+                        <SelectItem value="4">4+ estrelas</SelectItem>
+                        <SelectItem value="3">3+ estrelas</SelectItem>
+                        <SelectItem value="2">2+ estrelas</SelectItem>
+                        <SelectItem value="1">1+ estrela</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Restaurant specific filters */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Opções Específicas
+                    </label>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2">
                         <Checkbox
-                          id={`type-${type.id}`}
-                          checked={filters.typeIds.includes(type.id)}
+                          id="rodizio"
+                          checked={filters.hasRodizio === true}
                           onCheckedChange={(checked) => 
-                            handleTypeChange(type.id, checked as boolean)
+                            setFilters(prev => ({ 
+                              ...prev, 
+                              hasRodizio: checked ? true : null 
+                            }))
                           }
                         />
-                        <label
-                          htmlFor={`type-${type.id}`}
-                          className="text-sm text-gray-600 cursor-pointer"
-                        >
-                          {type.name}
+                        <label htmlFor="rodizio" className="text-sm text-gray-600 cursor-pointer">
+                          Com Rodízio
                         </label>
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* State */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Estado
-                  </label>
-                  <Select value={filters.stateId} onValueChange={(value) => 
-                    setFilters(prev => ({ ...prev, stateId: value }))
-                  }>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o estado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os estados</SelectItem>
-                      {states.map((state) => (
-                        <SelectItem key={state.id} value={state.id}>
-                          {state.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Rating */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Avaliação Mínima
-                  </label>
-                  <Select value={filters.minRating} onValueChange={(value) => 
-                    setFilters(prev => ({ ...prev, minRating: value }))
-                  }>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Qualquer avaliação" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Qualquer avaliação</SelectItem>
-                      <SelectItem value="1">1+ estrelas</SelectItem>
-                      <SelectItem value="2">2+ estrelas</SelectItem>
-                      <SelectItem value="3">3+ estrelas</SelectItem>
-                      <SelectItem value="4">4+ estrelas</SelectItem>
-                      <SelectItem value="5">5 estrelas</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Special Filters */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Características
-                  </label>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="rodizio"
-                        checked={filters.hasRodizio === true}
-                        onCheckedChange={(checked) => 
-                          setFilters(prev => ({ 
-                            ...prev, 
-                            hasRodizio: checked ? true : null 
-                          }))
-                        }
-                      />
-                      <label htmlFor="rodizio" className="text-sm text-gray-600 cursor-pointer">
-                        Com Rodízio
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="visited"
-                        checked={filters.isVisited === true}
-                        onCheckedChange={(checked) => 
-                          setFilters(prev => ({ 
-                            ...prev, 
-                            isVisited: checked ? true : null 
-                          }))
-                        }
-                      />
-                      <label htmlFor="visited" className="text-sm text-gray-600 cursor-pointer">
-                        Já Visitado
-                      </label>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="visited"
+                          checked={filters.isVisited === true}
+                          onCheckedChange={(checked) => 
+                            setFilters(prev => ({ 
+                              ...prev, 
+                              isVisited: checked ? true : null 
+                            }))
+                          }
+                        />
+                        <label htmlFor="visited" className="text-sm text-gray-600 cursor-pointer">
+                          Já Visitado
+                        </label>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
+                </CardContent>
+              )}
             </Card>
           </div>
 
@@ -244,13 +268,10 @@ export default function PlacesPage() {
             ) : places.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {places.map((place) => (
-                  <PlaceCard 
-                    key={place.id} 
-                    place={place} 
-                    onClick={() => {
-                      setSelectedPlace(place);
-                      setIsModalOpen(true);
-                    }}
+                  <PlaceCard
+                    key={place.id}
+                    place={place}
+                    onClick={() => handlePlaceClick(place)}
                   />
                 ))}
               </div>
