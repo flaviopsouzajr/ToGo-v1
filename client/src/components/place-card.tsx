@@ -70,8 +70,8 @@ export function PlaceCard({ place }: PlaceCardProps) {
               {place.tags.map((tag, index) => (
                 <Badge 
                   key={index} 
-                  variant="outline" 
-                  className="text-xs px-2 py-1 bg-togo-primary/10 text-togo-primary border-togo-primary/20 hover:bg-togo-primary/20"
+                  variant="secondary" 
+                  className="text-xs px-2 py-1 bg-togo-primary/15 text-togo-primary border-none hover:bg-togo-primary/25 transition-colors"
                 >
                   {tag}
                 </Badge>
