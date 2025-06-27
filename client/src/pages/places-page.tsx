@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Navigation } from "@/components/navigation";
 import { PlaceCard } from "@/components/place-card";
+import { PlaceDetailsModal } from "@/components/place-details-modal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,9 @@ export default function PlacesPage() {
     minRating: "all",
     search: "",
   });
+
+  const [selectedPlace, setSelectedPlace] = useState<PlaceWithType | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: places = [], isLoading } = useQuery<PlaceWithType[]>({
     queryKey: ["/api/places", filters],
@@ -240,7 +244,14 @@ export default function PlacesPage() {
             ) : places.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {places.map((place) => (
-                  <PlaceCard key={place.id} place={place} />
+                  <PlaceCard 
+                    key={place.id} 
+                    place={place} 
+                    onClick={() => {
+                      setSelectedPlace(place);
+                      setIsModalOpen(true);
+                    }}
+                  />
                 ))}
               </div>
             ) : (
@@ -264,6 +275,16 @@ export default function PlacesPage() {
           </div>
         </div>
       </div>
+
+      {/* Place Details Modal */}
+      <PlaceDetailsModal
+        place={selectedPlace}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedPlace(null);
+        }}
+      />
     </div>
   );
 }

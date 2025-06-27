@@ -6,11 +6,15 @@ import { PlaceWithType } from "@shared/schema";
 
 interface PlaceCardProps {
   place: PlaceWithType;
+  onClick?: () => void;
 }
 
-export function PlaceCard({ place }: PlaceCardProps) {
+export function PlaceCard({ place, onClick }: PlaceCardProps) {
   return (
-    <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
+    <Card 
+      className="overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer"
+      onClick={onClick}
+    >
       {place.mainImage && (
         <img 
           src={place.mainImage} 

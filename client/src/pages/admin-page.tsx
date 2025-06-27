@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Navigation } from "@/components/navigation";
 import { PlaceForm } from "@/components/place-form";
+import { PlaceDetailsModal } from "@/components/place-details-modal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,8 @@ export default function AdminPage() {
   const [editingType, setEditingType] = useState<PlaceType | null>(null);
   const [editingPlace, setEditingPlace] = useState<PlaceWithType | null>(null);
   const [activeTab, setActiveTab] = useState("places");
+  const [selectedPlace, setSelectedPlace] = useState<PlaceWithType | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   // Navigate to edit tab when editing a place
   useEffect(() => {
@@ -235,7 +238,14 @@ export default function AdminPage() {
                     </TableHeader>
                     <TableBody>
                       {filteredPlaces.map((place) => (
-                        <TableRow key={place.id}>
+                        <TableRow 
+                          key={place.id}
+                          className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                          onClick={() => {
+                            setSelectedPlace(place);
+                            setIsDetailsModalOpen(true);
+                          }}
+                        >
                           <TableCell>
                             <div className="flex items-center space-x-3">
                               {place.mainImage ? (
@@ -295,7 +305,10 @@ export default function AdminPage() {
                                 variant="ghost"
                                 size="sm"
                                 className="text-blue-600 hover:text-blue-500"
-                                onClick={() => setEditingPlace(place)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingPlace(place);
+                                }}
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
@@ -303,7 +316,10 @@ export default function AdminPage() {
                                 variant="ghost"
                                 size="sm"
                                 className="text-red-600 hover:text-red-500"
-                                onClick={() => deletePlaceMutation.mutate(place.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deletePlaceMutation.mutate(place.id);
+                                }}
                                 disabled={deletePlaceMutation.isPending}
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -463,6 +479,16 @@ export default function AdminPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Place Details Modal */}
+      <PlaceDetailsModal
+        place={selectedPlace}
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          setIsDetailsModalOpen(false);
+          setSelectedPlace(null);
+        }}
+      />
     </div>
   );
 }
