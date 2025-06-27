@@ -25,7 +25,9 @@ export default function HomePage() {
     queryKey: ["/api/stats"],
   });
 
-  const featuredPlaces = places.slice(0, 3);
+  const featuredPlaces = places
+    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    .slice(0, 3);
 
   const handlePlaceClick = (place: PlaceWithType) => {
     setSelectedPlace(place);
