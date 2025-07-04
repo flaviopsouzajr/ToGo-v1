@@ -33,6 +33,7 @@ export const places = pgTable("places", {
   rating: decimal("rating", { precision: 2, scale: 1 }),
   isVisited: boolean("is_visited").default(false),
   tags: text("tags").array(),
+  createdBy: text("created_by"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -62,6 +63,7 @@ export const insertPlaceSchema = createInsertSchema(places).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  createdBy: true,
 }).extend({
   rating: z.number().min(0).max(5).optional(),
 });

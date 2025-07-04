@@ -170,7 +170,10 @@ export function registerRoutes(app: Express): Server {
         validData.itineraryFile = `/uploads/itineraries/${req.file.filename}`;
       }
       
-      const place = await storage.createPlace(validData);
+      // Obter o nome do usuário logado
+      const createdBy = req.user.username;
+      
+      const place = await storage.createPlace(validData, createdBy);
       res.status(201).json(place);
     } catch (error) {
       next(error);
