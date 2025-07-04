@@ -33,7 +33,7 @@ export const places = pgTable("places", {
   rating: decimal("rating", { precision: 2, scale: 1 }),
   isVisited: boolean("is_visited").default(false),
   tags: text("tags").array(),
-  createdBy: text("created_by"),
+  createdBy: integer("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -43,10 +43,18 @@ export const placesRelations = relations(places, ({ one }) => ({
     fields: [places.typeId],
     references: [placeTypes.id],
   }),
+  createdByUser: one(users, {
+    fields: [places.createdBy],
+    references: [users.id],
+  }),
 }));
 
 export const placeTypesRelations = relations(placeTypes, ({ many }) => ({
   places: many(places),
+}));
+
+export const usersRelations = relations(users, ({ many }) => ({
+  createdPlaces: many(places),
 }));
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -74,4 +82,4 @@ export type InsertPlaceType = z.infer<typeof insertPlaceTypeSchema>;
 export type PlaceType = typeof placeTypes.$inferSelect;
 export type InsertPlace = z.infer<typeof insertPlaceSchema>;
 export type Place = typeof places.$inferSelect;
-export type PlaceWithType = Place & { type: PlaceType };
+export type PlaceWithType = Place & { type: PlaceType; createdByUser?: User };

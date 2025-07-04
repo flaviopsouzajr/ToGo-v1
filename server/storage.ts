@@ -29,7 +29,7 @@ export interface IStorage {
     search?: string;
   }): Promise<PlaceWithType[]>;
   getPlace(id: number): Promise<PlaceWithType | undefined>;
-  createPlace(place: InsertPlace, createdBy: string): Promise<Place>;
+  createPlace(place: InsertPlace, createdBy: number): Promise<Place>;
   updatePlace(id: number, place: Partial<InsertPlace>): Promise<Place | undefined>;
   deletePlace(id: number): Promise<boolean>;
   
@@ -212,7 +212,7 @@ export class DatabaseStorage implements IStorage {
     } as PlaceWithType;
   }
 
-  async createPlace(place: InsertPlace, createdBy: string): Promise<Place> {
+  async createPlace(place: InsertPlace, createdBy: number): Promise<Place> {
     const [created] = await db
       .insert(places)
       .values({

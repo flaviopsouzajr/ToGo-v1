@@ -93,6 +93,7 @@ Changelog:
 - June 27, 2025. Added tags/categories feature to place registration with visual display in cards
 - June 27, 2025. Improved tags visual design with elegant green rounded chips
 - June 27, 2025. Fixed statistics panel to show correct data: total places, visited, and to visit
+- July 4, 2025. Enhanced database structure with user tracking for places: Changed created_by field from TEXT to INTEGER with foreign key reference to users table. System now stores user ID instead of username for better data integrity and future functionality like permissions and auditing.
 
 ## User Preferences
 
