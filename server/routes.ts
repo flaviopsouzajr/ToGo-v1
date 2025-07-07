@@ -194,9 +194,9 @@ export function registerRoutes(app: Express): Server {
         typeId: req.body.typeId ? parseInt(req.body.typeId) : undefined,
         stateId: req.body.stateId ? parseInt(req.body.stateId) : undefined,
         cityId: req.body.cityId ? parseInt(req.body.cityId) : undefined,
-        hasRodizio: req.body.hasRodizio === 'true',
+        hasRodizio: req.body.hasRodizio === 'true' || req.body.hasRodizio === true,
         rating: req.body.rating ? parseFloat(req.body.rating) : undefined,
-        isVisited: req.body.isVisited === 'true',
+        isVisited: req.body.isVisited === 'true' || req.body.isVisited === true,
         tags: req.body.tags ? (typeof req.body.tags === 'string' ? JSON.parse(req.body.tags) : req.body.tags) : []
       };
       
