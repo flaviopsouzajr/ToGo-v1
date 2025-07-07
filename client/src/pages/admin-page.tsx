@@ -355,6 +355,10 @@ function AdminPageContent() {
                 </div>
               </CardHeader>
               <CardContent>
+                <p className="text-gray-600">
+                  Formulário de cadastro temporariamente desabilitado para diagnóstico.
+                </p>
+                {/* 
                 <PlaceForm 
                   editingPlace={editingPlace}
                   onSuccess={() => {
@@ -365,6 +369,7 @@ function AdminPageContent() {
                     });
                   }}
                 />
+                */}
               </CardContent>
             </Card>
           </TabsContent>
