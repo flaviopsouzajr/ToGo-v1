@@ -110,9 +110,11 @@ export function registerRoutes(app: Express): Server {
   });
 
   // Places Routes
-  app.get("/api/places", async (req, res, next) => {
+  app.get("/api/places", requireAuth, async (req, res, next) => {
     try {
-      const filters: any = {};
+      const filters: any = {
+        createdBy: req.user.id // Filtrar apenas lugares criados pelo usuário logado
+      };
       
       if (req.query.typeIds) {
         filters.typeIds = Array.isArray(req.query.typeIds) 
@@ -238,9 +240,9 @@ export function registerRoutes(app: Express): Server {
   });
 
   // Stats Route
-  app.get("/api/stats", async (req, res, next) => {
+  app.get("/api/stats", requireAuth, async (req, res, next) => {
     try {
-      const stats = await storage.getStats();
+      const stats = await storage.getStats(req.user.id);
       res.json(stats);
     } catch (error) {
       next(error);

@@ -12,8 +12,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Filter, MapPin, ChevronDown, ChevronUp } from "lucide-react";
 import { PlaceWithType, PlaceType } from "@shared/schema";
 import { states } from "@/lib/estados-cidades";
+import { ProtectedRoute } from "@/lib/protected-route";
 
-export default function PlacesPage() {
+function PlacesPageContent() {
   const [filters, setFilters] = useState({
     typeIds: [] as number[],
     stateId: "all",
@@ -322,5 +323,13 @@ export default function PlacesPage() {
         }}
       />
     </div>
+  );
+}
+
+export default function PlacesPage() {
+  return (
+    <ProtectedRoute>
+      <PlacesPageContent />
+    </ProtectedRoute>
   );
 }

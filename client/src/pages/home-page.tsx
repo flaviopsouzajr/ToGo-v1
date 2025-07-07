@@ -5,16 +5,19 @@ import { PlaceCard } from "@/components/place-card";
 import { PlaceDetailsModal } from "@/components/place-details-modal";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowRight, MapPin, Star, Route } from "lucide-react";
+import { ArrowRight, MapPin, Star, Route, LogIn } from "lucide-react";
 import { Link } from "wouter";
 import { PlaceWithType } from "@shared/schema";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function HomePage() {
   const [selectedPlace, setSelectedPlace] = useState<PlaceWithType | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const { user } = useAuth();
 
   const { data: places = [], isLoading } = useQuery<PlaceWithType[]>({
     queryKey: ["/api/places"],
+    enabled: !!user, // Só executa se o usuário estiver logado
   });
 
   const { data: stats } = useQuery<{
@@ -23,6 +26,7 @@ export default function HomePage() {
     toVisit: number;
   }>({
     queryKey: ["/api/stats"],
+    enabled: !!user, // Só executa se o usuário estiver logado
   });
 
   const featuredPlaces = places
@@ -47,69 +51,99 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-black bg-opacity-40"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
           <div className="text-white max-w-2xl">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4">
-              Descubra lugares incríveis para visitar
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 text-gray-200">
-              Com o ToGo, encontre os melhores restaurantes, pontos turísticos e experiências únicas.
-            </p>
-            <Button asChild size="lg" className="bg-togo-primary hover:bg-togo-secondary">
-              <Link href="/places">
-                Explorar Lugares
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
+            {user ? (
+              <>
+                <h1 className="text-4xl md:text-6xl font-bold mb-4">
+                  Bem-vindo, {user.username}!
+                </h1>
+                <p className="text-xl md:text-2xl mb-8 text-gray-200">
+                  Gerencie seus lugares favoritos e descubra novas experiências únicas.
+                </p>
+                <Button asChild size="lg" className="bg-togo-primary hover:bg-togo-secondary">
+                  <Link href="/places">
+                    Meus Lugares
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <h1 className="text-4xl md:text-6xl font-bold mb-4">
+                  Bem-vindo ao ToGo
+                </h1>
+                <p className="text-xl md:text-2xl mb-8 text-gray-200">
+                  O sistema para organizar e planejar seus lugares favoritos para visitar. Faça login para cadastrar, gerenciar e explorar seus próprios registros.
+                </p>
+                <Button asChild size="lg" className="bg-togo-primary hover:bg-togo-secondary">
+                  <Link href="/auth">
+                    Fazer Login
+                    <LogIn className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
-      {/* Featured Places */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Lugares em Destaque
-          </h2>
-          <p className="text-xl text-gray-600">
-            Descobertos e avaliados pela nossa comunidade
-          </p>
-        </div>
-        
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="space-y-4">
-                <Skeleton className="h-48 w-full rounded-lg" />
-                <Skeleton className="h-4 w-2/3" />
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-4 w-3/4" />
-              </div>
-            ))}
-          </div>
-        ) : featuredPlaces.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredPlaces.map((place) => (
-              <PlaceCard 
-                key={place.id} 
-                place={place} 
-                onClick={() => handlePlaceClick(place)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-16">
-            <MapPin className="mx-auto h-16 w-16 text-gray-400" />
-            <h3 className="text-xl font-semibold text-gray-900 mt-4">
-              Nenhum lugar cadastrado ainda
-            </h3>
-            <p className="text-gray-600 mt-2">
-              Seja o primeiro a cadastrar lugares incríveis!
+      {/* Featured Places - Só aparece para usuários logados */}
+      {user && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Seus Lugares em Destaque
+            </h2>
+            <p className="text-xl text-gray-600">
+              Os lugares que você cadastrou com as melhores avaliações
             </p>
           </div>
-        )}
-      </div>
-      {/* Statistics */}
-      {stats && (
+          
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="space-y-4">
+                  <Skeleton className="h-48 w-full rounded-lg" />
+                  <Skeleton className="h-4 w-2/3" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+              ))}
+            </div>
+          ) : featuredPlaces.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredPlaces.map((place) => (
+                <PlaceCard 
+                  key={place.id} 
+                  place={place} 
+                  onClick={() => handlePlaceClick(place)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <MapPin className="mx-auto h-16 w-16 text-gray-400" />
+              <h3 className="text-xl font-semibold text-gray-900 mt-4">
+                Nenhum lugar cadastrado ainda
+              </h3>
+              <p className="text-gray-600 mt-2">
+                Comece cadastrando seu primeiro lugar incrível!
+              </p>
+              <Button asChild className="mt-4">
+                <Link href="/places">
+                  Cadastrar Lugar
+                </Link>
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+      {/* Statistics - Só aparece para usuários logados */}
+      {user && stats && (
         <div className="bg-togo-lightest py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Seus Números</h2>
+              <p className="text-lg text-gray-600">Acompanhe seu progresso de descobertas</p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center max-w-3xl mx-auto">
               <div>
                 <div className="text-3xl md:text-4xl font-bold text-togo-primary mb-2">

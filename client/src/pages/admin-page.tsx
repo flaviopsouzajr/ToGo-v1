@@ -17,8 +17,9 @@ import { PlaceWithType, PlaceType, insertPlaceTypeSchema } from "@shared/schema"
 import { MapPin, Plus, Edit, Trash2, Tags, Search } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ProtectedRoute } from "@/lib/protected-route";
 
-export default function AdminPage() {
+function AdminPageContent() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
@@ -490,5 +491,13 @@ export default function AdminPage() {
         }}
       />
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <ProtectedRoute>
+      <AdminPageContent />
+    </ProtectedRoute>
   );
 }

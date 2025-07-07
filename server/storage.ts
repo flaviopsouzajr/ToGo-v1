@@ -27,6 +27,7 @@ export interface IStorage {
     isVisited?: boolean;
     minRating?: number;
     search?: string;
+    createdBy?: number;
   }): Promise<PlaceWithType[]>;
   getPlace(id: number): Promise<PlaceWithType | undefined>;
   createPlace(place: InsertPlace, createdBy: number): Promise<Place>;
@@ -34,7 +35,7 @@ export interface IStorage {
   deletePlace(id: number): Promise<boolean>;
   
   // Stats
-  getStats(): Promise<{
+  getStats(userId: number): Promise<{
     totalPlaces: number;
     visited: number;
     toVisit: number;
@@ -105,6 +106,7 @@ export class DatabaseStorage implements IStorage {
     isVisited?: boolean;
     minRating?: number;
     search?: string;
+    createdBy?: number;
   }): Promise<PlaceWithType[]> {
     let query = db
       .select({
@@ -158,6 +160,9 @@ export class DatabaseStorage implements IStorage {
     }
     if (filters?.search) {
       conditions.push(like(places.name, `%${filters.search}%`));
+    }
+    if (filters?.createdBy) {
+      conditions.push(eq(places.createdBy, filters.createdBy));
     }
 
     if (conditions.length > 0) {
@@ -241,12 +246,12 @@ export class DatabaseStorage implements IStorage {
     return result.rowCount > 0;
   }
 
-  async getStats(): Promise<{
+  async getStats(userId: number): Promise<{
     totalPlaces: number;
     visited: number;
     toVisit: number;
   }> {
-    const allPlaces = await db.select().from(places);
+    const allPlaces = await db.select().from(places).where(eq(places.createdBy, userId));
     
     const totalPlaces = allPlaces.length;
     const visited = allPlaces.filter(place => place.isVisited === true).length;

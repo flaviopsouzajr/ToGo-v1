@@ -94,6 +94,7 @@ Changelog:
 - June 27, 2025. Improved tags visual design with elegant green rounded chips
 - June 27, 2025. Fixed statistics panel to show correct data: total places, visited, and to visit
 - July 4, 2025. Enhanced database structure with user tracking for places: Changed created_by field from TEXT to INTEGER with foreign key reference to users table. System now stores user ID instead of username for better data integrity and future functionality like permissions and auditing.
+- July 7, 2025. Implemented comprehensive user-specific access control: Updated storage layer to filter all places by authenticated user ID, protected API routes with authentication requirements, and modified frontend to show user-specific content. Home page now displays personalized welcome messages and user-specific statistics only for authenticated users.
 
 ## User Preferences
 
