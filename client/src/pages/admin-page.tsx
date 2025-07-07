@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Navigation } from "@/components/navigation";
-import { PlaceForm } from "@/components/place-form";
+import { PlaceFormSimple } from "@/components/place-form-simple";
 import { PlaceDetailsModal } from "@/components/place-details-modal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -355,21 +355,14 @@ function AdminPageContent() {
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600">
-                  Formulário de cadastro temporariamente desabilitado para diagnóstico.
-                </p>
-                {/* 
-                <PlaceForm 
-                  editingPlace={editingPlace}
+                <PlaceFormSimple 
                   onSuccess={() => {
-                    setEditingPlace(null);
                     toast({
-                      title: editingPlace ? "Lugar atualizado!" : "Lugar cadastrado!",
-                      description: editingPlace ? "As alterações foram salvas com sucesso." : "O lugar foi adicionado à sua lista.",
+                      title: "Lugar cadastrado!",
+                      description: "O lugar foi adicionado à sua lista.",
                     });
                   }}
                 />
-                */}
               </CardContent>
             </Card>
           </TabsContent>
