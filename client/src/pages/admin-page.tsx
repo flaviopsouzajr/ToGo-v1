@@ -356,10 +356,12 @@ function AdminPageContent() {
               </CardHeader>
               <CardContent>
                 <PlaceFormSimple 
+                  editingPlace={editingPlace}
                   onSuccess={() => {
+                    setEditingPlace(null);
                     toast({
-                      title: "Lugar cadastrado!",
-                      description: "O lugar foi adicionado à sua lista.",
+                      title: editingPlace ? "Lugar atualizado!" : "Lugar cadastrado!",
+                      description: editingPlace ? "As alterações foram salvas com sucesso." : "O lugar foi adicionado à sua lista.",
                     });
                   }}
                 />
