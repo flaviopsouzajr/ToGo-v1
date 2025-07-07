@@ -26,14 +26,14 @@ export function Navigation() {
               <div className="w-8 h-8 bg-togo-primary rounded-lg flex items-center justify-center">
                 <MapPin className="text-white w-5 h-5" />
               </div>
-              <span className="text-2xl font-bold togo-primary">ToGo</span>
+              <span className="text-2xl font-bold text-togo-primary">ToGo</span>
             </Link>
             <div className="hidden md:flex space-x-8 ml-8">
               <Link
                 href="/"
                 className={`transition-colors ${
                   location === "/" 
-                    ? "togo-primary font-medium" 
+                    ? "text-togo-primary font-medium" 
                     : "text-gray-700 hover:text-primary"
                 }`}
               >
@@ -43,7 +43,7 @@ export function Navigation() {
                 href="/places"
                 className={`transition-colors ${
                   location === "/places" 
-                    ? "togo-primary font-medium" 
+                    ? "text-togo-primary font-medium" 
                     : "text-gray-700 hover:text-primary"
                 }`}
               >
@@ -53,7 +53,7 @@ export function Navigation() {
                 href="/about"
                 className={`transition-colors ${
                   location === "/about" 
-                    ? "togo-primary font-medium" 
+                    ? "text-togo-primary font-medium" 
                     : "text-gray-700 hover:text-primary"
                 }`}
               >

@@ -21,7 +21,7 @@ export default function AuthPage() {
   // Redirect if already logged in - use useEffect to avoid render issues
   useEffect(() => {
     if (user) {
-      setLocation("/admin");
+      setLocation("/");
     }
   }, [user, setLocation]);
 
