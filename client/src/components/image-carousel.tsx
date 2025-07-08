@@ -93,7 +93,7 @@ export function ImageCarousel() {
   };
 
   return (
-    <Card className="w-full h-80 md:h-96 mb-8 overflow-hidden">
+    <Card className="w-full h-96 md:h-[28rem] mb-8 overflow-hidden">
       <CardContent className="p-0 h-full relative">
         <div className="relative w-full h-full">
           {imageErrors.has(currentImage.id) ? (
@@ -107,7 +107,7 @@ export function ImageCarousel() {
             <img
               src={convertGoogleDriveUrl(currentImage.imageUrl)}
               alt={currentImage.title || "Carousel image"}
-              className="w-full h-full object-contain bg-gray-100"
+              className="w-full h-full object-cover object-center"
               onError={() => handleImageError(currentImage.id)}
             />
           )}
