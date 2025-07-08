@@ -1,4 +1,4 @@
-import { users, places, placeTypes, type User, type InsertUser, type Place, type InsertPlace, type PlaceType, type InsertPlaceType, type PlaceWithType } from "@shared/schema";
+import { users, places, placeTypes, carouselImages, type User, type InsertUser, type Place, type InsertPlace, type PlaceType, type InsertPlaceType, type PlaceWithType, type CarouselImage, type InsertCarouselImage } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, like, gte, inArray, sql } from "drizzle-orm";
 import session from "express-session";
@@ -40,6 +40,12 @@ export interface IStorage {
     visited: number;
     toVisit: number;
   }>;
+  
+  // Carousel Images
+  getCarouselImages(): Promise<CarouselImage[]>;
+  createCarouselImage(image: InsertCarouselImage, createdBy: number): Promise<CarouselImage>;
+  updateCarouselImage(id: number, image: Partial<InsertCarouselImage>): Promise<CarouselImage | undefined>;
+  deleteCarouselImage(id: number): Promise<boolean>;
   
   sessionStore: session.SessionStore;
 }
@@ -262,6 +268,38 @@ export class DatabaseStorage implements IStorage {
       visited,
       toVisit,
     };
+  }
+
+  async getCarouselImages(): Promise<CarouselImage[]> {
+    return await db
+      .select()
+      .from(carouselImages)
+      .where(eq(carouselImages.isActive, true))
+      .orderBy(carouselImages.displayOrder, carouselImages.createdAt);
+  }
+
+  async createCarouselImage(image: InsertCarouselImage, createdBy: number): Promise<CarouselImage> {
+    const [newImage] = await db
+      .insert(carouselImages)
+      .values({ ...image, createdBy })
+      .returning();
+    return newImage;
+  }
+
+  async updateCarouselImage(id: number, image: Partial<InsertCarouselImage>): Promise<CarouselImage | undefined> {
+    const [updatedImage] = await db
+      .update(carouselImages)
+      .set({ ...image, updatedAt: new Date() })
+      .where(eq(carouselImages.id, id))
+      .returning();
+    return updatedImage;
+  }
+
+  async deleteCarouselImage(id: number): Promise<boolean> {
+    const result = await db
+      .delete(carouselImages)
+      .where(eq(carouselImages.id, id));
+    return result.rowCount > 0;
   }
 }
 

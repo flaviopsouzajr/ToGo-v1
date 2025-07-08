@@ -75,6 +75,13 @@ export function Navigation() {
                       Painel Admin
                     </Link>
                   </DropdownMenuItem>
+                  {user.isAdmin && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/carousel-admin" className="w-full">
+                        Carrossel
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Sair

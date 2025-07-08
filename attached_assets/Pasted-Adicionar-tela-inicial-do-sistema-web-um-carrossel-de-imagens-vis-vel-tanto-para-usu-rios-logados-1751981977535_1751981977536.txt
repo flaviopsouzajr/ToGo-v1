@@ -1,0 +1,45 @@
+Adicionar à tela inicial do sistema web um carrossel de imagens, visível tanto para usuários logados quanto para visitantes não autenticados. Esse carrossel exibirá imagens cadastradas por usuários com o campo is_admin = True na tabela de usuários.
+
+Esse administrador terá uma área exclusiva de gerenciamento de imagens, separada das funcionalidades do sistema principal, e não deve ter acesso às funcionalidades de usuários comuns. Nenhuma outra funcionalidade existente no sistema deve ser alterada por essa modificação.
+
+Especificações da Funcionalidade:
+✅ Carrossel de Imagens na Tela Inicial:
+
+Exibido sempre, independentemente de haver login.
+
+Deve apresentar as imagens cadastradas por um usuário administrador (is_admin = True).
+
+As imagens podem ser exibidas automaticamente em rotação e com controle manual (setas/pontos).
+
+Design responsivo e elegante, alinhado ao estilo atual do sistema.
+
+✅ Gerenciamento das Imagens do Carrossel:
+
+Criar uma área administrativa separada, acessível apenas para usuários com is_admin = True.
+
+Ao logar, um administrador deve ser redirecionado para a tela de gerenciamento do carrossel, sem acesso às demais áreas comuns do sistema.
+
+Funcionalidades disponíveis para o administrador:
+
+Cadastrar nova imagem (upload de arquivo ou URL).
+
+Excluir imagem existente.
+
+(Opcional) Definir a ordem de exibição das imagens no carrossel.
+
+✅ Banco de Dados:
+
+Criar uma tabela ou estrutura para armazenar as imagens do carrossel, contendo:
+
+URL ou caminho do arquivo.
+
+Data de cadastro (opcional).
+
+ID do usuário administrador que cadastrou a imagem (chave estrangeira).
+
+Importante:
+⚠ Essa alteração não deve afetar nenhuma outra funcionalidade do sistema existente, especialmente os cadastros de lugares, login de usuários comuns ou filtros de visualização já implementados.
+
+Resumo Simplificado:
+Criar um carrossel de imagens visível na tela inicial, mesmo sem login. Apenas usuários com is_admin = True poderão cadastrar, editar e excluir imagens através de uma interface exclusiva para administradores. O restante do sistema deve continuar funcionando como está, sem alterações.
+

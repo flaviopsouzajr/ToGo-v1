@@ -39,6 +39,18 @@ export const places = pgTable("places", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const carouselImages = pgTable("carousel_images", {
+  id: serial("id").primaryKey(),
+  imageUrl: text("image_url").notNull(),
+  title: text("title"),
+  description: text("description"),
+  displayOrder: integer("display_order").default(0),
+  isActive: boolean("is_active").default(true),
+  createdBy: integer("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const placesRelations = relations(places, ({ one }) => ({
   type: one(placeTypes, {
     fields: [places.typeId],
@@ -56,6 +68,14 @@ export const placeTypesRelations = relations(placeTypes, ({ many }) => ({
 
 export const usersRelations = relations(users, ({ many }) => ({
   createdPlaces: many(places),
+  carouselImages: many(carouselImages),
+}));
+
+export const carouselImagesRelations = relations(carouselImages, ({ one }) => ({
+  createdByUser: one(users, {
+    fields: [carouselImages.createdBy],
+    references: [users.id],
+  }),
 }));
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -77,6 +97,13 @@ export const insertPlaceSchema = createInsertSchema(places).omit({
   rating: z.number().min(0).max(5).optional(),
 });
 
+export const insertCarouselImageSchema = createInsertSchema(carouselImages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  createdBy: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertPlaceType = z.infer<typeof insertPlaceTypeSchema>;
@@ -84,3 +111,5 @@ export type PlaceType = typeof placeTypes.$inferSelect;
 export type InsertPlace = z.infer<typeof insertPlaceSchema>;
 export type Place = typeof places.$inferSelect;
 export type PlaceWithType = Place & { type: PlaceType; createdByUser?: User };
+export type InsertCarouselImage = z.infer<typeof insertCarouselImageSchema>;
+export type CarouselImage = typeof carouselImages.$inferSelect;

@@ -6,7 +6,7 @@ import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { insertPlaceSchema, insertPlaceTypeSchema } from "@shared/schema";
+import { insertPlaceSchema, insertPlaceTypeSchema, insertCarouselImageSchema } from "@shared/schema";
 
 
 
@@ -14,6 +14,16 @@ import { insertPlaceSchema, insertPlaceTypeSchema } from "@shared/schema";
 function requireAuth(req: any, res: any, next: any) {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ message: "Authentication required" });
+  }
+  next();
+}
+
+function requireAdmin(req: any, res: any, next: any) {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Authentication required" });
+  }
+  if (!req.user.isAdmin) {
+    return res.status(403).json({ message: "Admin access required" });
   }
   next();
 }
@@ -244,6 +254,57 @@ export function registerRoutes(app: Express): Server {
     try {
       const stats = await storage.getStats(req.user.id);
       res.json(stats);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Carousel Images Routes
+  app.get("/api/carousel-images", async (req, res, next) => {
+    try {
+      const images = await storage.getCarouselImages();
+      res.json(images);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/carousel-images", requireAdmin, async (req, res, next) => {
+    try {
+      const validData = insertCarouselImageSchema.parse(req.body);
+      const image = await storage.createCarouselImage(validData, req.user.id);
+      res.status(201).json(image);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.put("/api/carousel-images/:id", requireAdmin, async (req, res, next) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validData = insertCarouselImageSchema.parse(req.body);
+      const image = await storage.updateCarouselImage(id, validData);
+      
+      if (!image) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      
+      res.json(image);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.delete("/api/carousel-images/:id", requireAdmin, async (req, res, next) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteCarouselImage(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+      
+      res.sendStatus(204);
     } catch (error) {
       next(error);
     }
