@@ -269,6 +269,36 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Proxy para imagens do Google Drive
+  app.get("/api/proxy-image", async (req, res, next) => {
+    try {
+      const { url } = req.query;
+      
+      if (!url || typeof url !== 'string') {
+        return res.status(400).json({ message: "URL is required" });
+      }
+
+      // Fazer a requisição para a URL da imagem
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        return res.status(404).json({ message: "Image not found" });
+      }
+
+      // Copiar headers relevantes
+      const contentType = response.headers.get('content-type');
+      if (contentType) {
+        res.setHeader('content-type', contentType);
+      }
+
+      // Enviar a imagem
+      const buffer = await response.arrayBuffer();
+      res.send(Buffer.from(buffer));
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.post("/api/carousel-images", requireAdmin, async (req, res, next) => {
     try {
       const validData = insertCarouselImageSchema.parse(req.body);

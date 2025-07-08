@@ -32,10 +32,9 @@ function convertGoogleDriveUrl(url: string): string {
     }
     
     if (fileId) {
-      // Tenta diferentes formatos de URL do Google Drive
-      // Formato 1: uc?export=view&id=
-      // Formato 2: uc?id= (alternativa que pode funcionar melhor)
-      return `https://drive.google.com/uc?id=${fileId}`;
+      // Usar proxy do nosso servidor para contornar CORS
+      const driveUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+      return `/api/proxy-image?url=${encodeURIComponent(driveUrl)}`;
     }
   }
   // Retorna URL original se não for do Google Drive
@@ -90,14 +89,8 @@ export function ImageCarousel() {
   const currentImage = images[currentIndex];
   
   const handleImageError = (imageId: number) => {
-    console.log(`Erro ao carregar imagem ${imageId}:`, currentImage.imageUrl);
-    console.log('URL convertida:', convertGoogleDriveUrl(currentImage.imageUrl));
     setImageErrors(prev => new Set(prev).add(imageId));
   };
-
-  // Debug: log da conversão para ver se está funcionando
-  console.log('Carrossel - Imagem atual:', currentImage);
-  console.log('Carrossel - URL convertida:', convertGoogleDriveUrl(currentImage.imageUrl));
 
   return (
     <Card className="w-full h-64 md:h-80 mb-8 overflow-hidden">
