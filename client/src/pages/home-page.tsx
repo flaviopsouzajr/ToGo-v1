@@ -44,53 +44,47 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       
-      {/* Image Carousel */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <ImageCarousel />
+      {/* Image Carousel - Centralizado */}
+      <div className="flex justify-center items-center min-h-[60vh] py-8">
+        <div className="w-full max-w-5xl px-4 sm:px-6 lg:px-8">
+          <ImageCarousel />
+        </div>
       </div>
       
-      {/* Hero Section */}
-      <div 
-        className="relative h-96 md:h-[500px] bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1483729558449-99ef09a8c325?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')`,
-        }}
-      >
-        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
-          <div className="text-white max-w-2xl">
-            {user ? (
-              <>
-                <h1 className="text-4xl md:text-6xl font-bold mb-4">
-                  Bem-vindo, {user.username}!
-                </h1>
-                <p className="text-xl md:text-2xl mb-8 text-gray-200">
-                  Gerencie seus lugares favoritos e descubra novas experiências únicas.
-                </p>
-                <Button asChild size="lg" className="bg-togo-primary hover:bg-togo-secondary">
-                  <Link href="/places">
-                    Meus Lugares
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-              </>
-            ) : (
-              <>
-                <h1 className="text-4xl md:text-6xl font-bold mb-4">
-                  Bem-vindo ao ToGo
-                </h1>
-                <p className="text-xl md:text-2xl mb-8 text-gray-200">
-                  O sistema para organizar e planejar seus lugares favoritos para visitar. Faça login para cadastrar, gerenciar e explorar seus próprios registros.
-                </p>
-                <Button asChild size="lg" className="bg-togo-primary hover:bg-togo-secondary">
-                  <Link href="/auth">
-                    Fazer Login
-                    <LogIn className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-              </>
-            )}
-          </div>
+      {/* Welcome Section - Simplificada */}
+      <div className="bg-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          {user ? (
+            <>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                Bem-vindo, {user.username}!
+              </h1>
+              <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                Gerencie seus lugares favoritos e descubra novas experiências únicas.
+              </p>
+              <Button asChild size="lg" className="bg-togo-primary hover:bg-togo-secondary">
+                <Link href="/places">
+                  Meus Lugares
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+            </>
+          ) : (
+            <>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                Bem-vindo ao ToGo
+              </h1>
+              <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                O sistema para organizar e planejar seus lugares favoritos para visitar. Faça login para cadastrar, gerenciar e explorar seus próprios registros.
+              </p>
+              <Button asChild size="lg" className="bg-togo-primary hover:bg-togo-secondary">
+                <Link href="/auth">
+                  Fazer Login
+                  <LogIn className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
       {/* Featured Places - Só aparece para usuários logados */}

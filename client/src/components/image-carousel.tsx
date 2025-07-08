@@ -93,7 +93,7 @@ export function ImageCarousel() {
   };
 
   return (
-    <Card className="w-full h-64 md:h-80 mb-8 overflow-hidden">
+    <Card className="w-full h-80 md:h-96 lg:h-[28rem] mb-8 overflow-hidden shadow-lg">
       <CardContent className="p-0 h-full relative">
         <div className="relative w-full h-full">
           {imageErrors.has(currentImage.id) ? (
