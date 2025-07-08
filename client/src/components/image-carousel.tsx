@@ -9,12 +9,33 @@ import { CarouselImage } from "@shared/schema";
 function convertGoogleDriveUrl(url: string): string {
   // Verifica se é URL do Google Drive
   if (url.includes('drive.google.com')) {
-    // Extrai o ID do arquivo da URL
-    const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    // Diferentes padrões de URL do Google Drive
+    let fileId = '';
+    
+    // Padrão 1: /file/d/ID/view
+    let match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
     if (match) {
-      const fileId = match[1];
-      // Retorna URL direta para exibição
-      return `https://drive.google.com/uc?export=view&id=${fileId}`;
+      fileId = match[1];
+    }
+    
+    // Padrão 2: id= na query string
+    if (!fileId) {
+      match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (match) {
+        fileId = match[1];
+      }
+    }
+    
+    // Padrão 3: URL já no formato de exibição
+    if (url.includes('drive.google.com/uc?')) {
+      return url;
+    }
+    
+    if (fileId) {
+      // Tenta diferentes formatos de URL do Google Drive
+      // Formato 1: uc?export=view&id=
+      // Formato 2: uc?id= (alternativa que pode funcionar melhor)
+      return `https://drive.google.com/uc?id=${fileId}`;
     }
   }
   // Retorna URL original se não for do Google Drive
@@ -23,6 +44,7 @@ function convertGoogleDriveUrl(url: string): string {
 
 export function ImageCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
 
   const { data: images = [], isLoading } = useQuery<CarouselImage[]>({
     queryKey: ["/api/carousel-images"],
@@ -66,16 +88,36 @@ export function ImageCarousel() {
   }
 
   const currentImage = images[currentIndex];
+  
+  const handleImageError = (imageId: number) => {
+    console.log(`Erro ao carregar imagem ${imageId}:`, currentImage.imageUrl);
+    console.log('URL convertida:', convertGoogleDriveUrl(currentImage.imageUrl));
+    setImageErrors(prev => new Set(prev).add(imageId));
+  };
+
+  // Debug: log da conversão para ver se está funcionando
+  console.log('Carrossel - Imagem atual:', currentImage);
+  console.log('Carrossel - URL convertida:', convertGoogleDriveUrl(currentImage.imageUrl));
 
   return (
     <Card className="w-full h-64 md:h-80 mb-8 overflow-hidden">
       <CardContent className="p-0 h-full relative">
         <div className="relative w-full h-full">
-          <img
-            src={convertGoogleDriveUrl(currentImage.imageUrl)}
-            alt={currentImage.title || "Carousel image"}
-            className="w-full h-full object-cover"
-          />
+          {imageErrors.has(currentImage.id) ? (
+            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+              <div className="text-center text-gray-500">
+                <p className="text-sm">Erro ao carregar imagem</p>
+                <p className="text-xs mt-1">Verifique a URL da imagem</p>
+              </div>
+            </div>
+          ) : (
+            <img
+              src={convertGoogleDriveUrl(currentImage.imageUrl)}
+              alt={currentImage.title || "Carousel image"}
+              className="w-full h-full object-cover"
+              onError={() => handleImageError(currentImage.id)}
+            />
+          )}
           
           {/* Overlay with title and description */}
           {(currentImage.title || currentImage.description) && (
