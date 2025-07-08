@@ -35,6 +35,22 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Trash2, Edit, Plus, Image, Save, X } from "lucide-react";
 
+// Função para converter URL do Google Drive para formato de exibição
+function convertGoogleDriveUrl(url: string): string {
+  // Verifica se é URL do Google Drive
+  if (url.includes('drive.google.com')) {
+    // Extrai o ID do arquivo da URL
+    const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+      const fileId = match[1];
+      // Retorna URL direta para exibição
+      return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    }
+  }
+  // Retorna URL original se não for do Google Drive
+  return url;
+}
+
 export default function CarouselAdminPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -214,7 +230,7 @@ export default function CarouselAdminPage() {
                             />
                           </FormControl>
                           <FormDescription>
-                            Insira a URL da imagem que será exibida no carrossel
+                            Insira a URL da imagem que será exibida no carrossel. Para usar imagens do Google Drive, use URLs de compartilhamento como: https://drive.google.com/file/d/ID_DO_ARQUIVO/view
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -342,7 +358,7 @@ export default function CarouselAdminPage() {
                       <Card key={image.id} className="overflow-hidden">
                         <div className="aspect-video relative">
                           <img
-                            src={image.imageUrl}
+                            src={convertGoogleDriveUrl(image.imageUrl)}
                             alt={image.title || "Carousel image"}
                             className="w-full h-full object-cover"
                           />

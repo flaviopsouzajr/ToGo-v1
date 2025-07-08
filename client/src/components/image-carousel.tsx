@@ -5,6 +5,22 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CarouselImage } from "@shared/schema";
 
+// Função para converter URL do Google Drive para formato de exibição
+function convertGoogleDriveUrl(url: string): string {
+  // Verifica se é URL do Google Drive
+  if (url.includes('drive.google.com')) {
+    // Extrai o ID do arquivo da URL
+    const match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+      const fileId = match[1];
+      // Retorna URL direta para exibição
+      return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    }
+  }
+  // Retorna URL original se não for do Google Drive
+  return url;
+}
+
 export function ImageCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -56,7 +72,7 @@ export function ImageCarousel() {
       <CardContent className="p-0 h-full relative">
         <div className="relative w-full h-full">
           <img
-            src={currentImage.imageUrl}
+            src={convertGoogleDriveUrl(currentImage.imageUrl)}
             alt={currentImage.title || "Carousel image"}
             className="w-full h-full object-cover"
           />

@@ -96,6 +96,7 @@ Changelog:
 - July 4, 2025. Enhanced database structure with user tracking for places: Changed created_by field from TEXT to INTEGER with foreign key reference to users table. System now stores user ID instead of username for better data integrity and future functionality like permissions and auditing.
 - July 7, 2025. Implemented comprehensive user-specific access control: Updated storage layer to filter all places by authenticated user ID, protected API routes with authentication requirements, and modified frontend to show user-specific content. Home page now displays personalized welcome messages and user-specific statistics only for authenticated users.
 - July 8, 2025. Added is_admin column to users table: Added boolean column with default value FALSE to enable future admin functionality. Updated schema.ts to reflect database structure. All existing user data preserved safely.
+- July 8, 2025. Implemented complete carousel system: Created carouselImages database table with fields for imageUrl, title, description, displayOrder, and isActive. Built ImageCarousel component with auto-advance functionality, navigation controls, and responsive design. Developed carousel-admin-page for admin users to manage images. Added admin route protection and Google Drive URL conversion support for image display.
 
 ## User Preferences
 
