@@ -1,0 +1,41 @@
+Criar uma nova aba no sistema chamada "Mapa", visível somente para usuários logados, que exibirá um mapa interativo do Brasil com pins marcando os lugares cadastrados, utilizando como base os dados de endereço, cidade e estado dos lugares registrados no sistema.
+
+Especificações da Funcionalidade:
+✅ Aba "Mapa":
+
+Incluir uma nova aba ou item no menu chamada "Mapa", visível apenas para usuários autenticados.
+
+Ao acessar a aba, deve ser carregado um mapa do Brasil com zoom inicial suficiente para mostrar todo o território nacional.
+
+✅ Exibição dos Lugares com Pins no Mapa:
+
+Cada lugar cadastrado deve ser representado por um pin (marcador) posicionado no mapa com base no endereço completo (campo de endereço + cidade + estado).
+
+O sistema pode usar APIs de geocodificação (ex: Google Maps, OpenStreetMap/Nominatim) para converter os dados de endereço em coordenadas de latitude e longitude, se necessário.
+
+✅ Funcionalidade do Mapa:
+
+Permitir ao usuário dar zoom in/out para explorar o mapa.
+
+Permitir arrastar e mover o mapa livremente.
+
+Os pins devem continuar visíveis em qualquer nível de zoom, conforme a região explorada.
+
+(Opcional) Ao clicar em um pin, pode exibir um resumo do lugar (nome e cidade).
+
+✅ Tecnologia Recomendada:
+
+Utilizar bibliotecas como Leaflet.js, Google Maps API, ou Mapbox GL JS para renderizar o mapa interativo.
+
+✅ Segurança e Permissão:
+
+A aba "Mapa" e seu conteúdo devem apenas ser visíveis após login do usuário.
+
+Visitantes não autenticados não podem acessar o mapa ou a rota associada.
+
+Importante:
+⚠ Essa nova funcionalidade deve ser adicionada de forma isolada, sem alterar qualquer outra funcionalidade existente no sistema (cadastro, listagem, filtros, carrossel, etc.).
+
+Resumo Simplificado:
+Criar uma aba "Mapa", acessível apenas para usuários logados, que exibe o Brasil com pins correspondentes aos lugares cadastrados, usando endereço + cidade + estado para posicionamento. O mapa deve permitir zoom e navegação por regiões. Alteração isolada, sem afetar outros recursos do sistema.
+
