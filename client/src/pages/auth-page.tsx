@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertUserSchema, type InsertUser } from "@shared/schema";
+import { insertUserSchema, loginSchema, type InsertUser, type LoginData } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,8 +11,6 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MapPin, Shield, UserPlus, LogIn } from "lucide-react";
 import { Link } from "wouter";
-
-type LoginData = Pick<InsertUser, "username" | "password">;
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
@@ -27,9 +25,9 @@ export default function AuthPage() {
   }, [user, setLocation]);
 
   const loginForm = useForm<LoginData>({
-    resolver: zodResolver(insertUserSchema),
+    resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
+      identifier: "",
       password: "",
     },
   });
@@ -38,6 +36,7 @@ export default function AuthPage() {
     resolver: zodResolver(insertUserSchema),
     defaultValues: {
       username: "",
+      email: "",
       password: "",
     },
   });
@@ -93,16 +92,16 @@ export default function AuthPage() {
                 <CardContent>
                   <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
                     <div>
-                      <Label htmlFor="login-username">Nome de usuário</Label>
+                      <Label htmlFor="login-identifier">Nome de usuário ou email</Label>
                       <Input
-                        id="login-username"
-                        {...loginForm.register("username")}
-                        placeholder="Digite seu nome de usuário"
+                        id="login-identifier"
+                        {...loginForm.register("identifier")}
+                        placeholder="Digite seu nome de usuário ou email"
                         required
                       />
-                      {loginForm.formState.errors.username && (
+                      {loginForm.formState.errors.identifier && (
                         <p className="text-sm text-red-600 mt-1">
-                          {loginForm.formState.errors.username.message}
+                          {loginForm.formState.errors.identifier.message}
                         </p>
                       )}
                     </div>
@@ -153,6 +152,22 @@ export default function AuthPage() {
                       {registerForm.formState.errors.username && (
                         <p className="text-sm text-red-600 mt-1">
                           {registerForm.formState.errors.username.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label htmlFor="register-email">Email</Label>
+                      <Input
+                        id="register-email"
+                        type="email"
+                        {...registerForm.register("email")}
+                        placeholder="Digite seu email"
+                        required
+                      />
+                      {registerForm.formState.errors.email && (
+                        <p className="text-sm text-red-600 mt-1">
+                          {registerForm.formState.errors.email.message}
                         </p>
                       )}
                     </div>

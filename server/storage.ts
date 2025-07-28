@@ -10,6 +10,8 @@ const PostgresSessionStore = connectPg(session);
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByIdentifier(identifier: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   
   // Place Types
@@ -47,11 +49,11 @@ export interface IStorage {
   updateCarouselImage(id: number, image: Partial<InsertCarouselImage>): Promise<CarouselImage | undefined>;
   deleteCarouselImage(id: number): Promise<boolean>;
   
-  sessionStore: session.SessionStore;
+  sessionStore: any;
 }
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.SessionStore;
+  sessionStore: any;
 
   constructor() {
     this.sessionStore = new PostgresSessionStore({ 
@@ -68,6 +70,20 @@ export class DatabaseStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
     return user || undefined;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async getUserByIdentifier(identifier: string): Promise<User | undefined> {
+    // Detecta se é email (contém @) ou username
+    if (identifier.includes('@')) {
+      return this.getUserByEmail(identifier);
+    } else {
+      return this.getUserByUsername(identifier);
+    }
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
@@ -101,7 +117,7 @@ export class DatabaseStorage implements IStorage {
 
   async deletePlaceType(id: number): Promise<boolean> {
     const result = await db.delete(placeTypes).where(eq(placeTypes.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async getPlaces(filters?: {
@@ -249,7 +265,7 @@ export class DatabaseStorage implements IStorage {
 
   async deletePlace(id: number): Promise<boolean> {
     const result = await db.delete(places).where(eq(places.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async getStats(userId: number): Promise<{
@@ -299,7 +315,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(carouselImages)
       .where(eq(carouselImages.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 }
 

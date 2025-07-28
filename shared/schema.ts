@@ -6,6 +6,7 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
+  email: text("email").notNull().unique(),
   password: text("password").notNull(),
   isAdmin: boolean("is_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -80,7 +81,15 @@ export const carouselImagesRelations = relations(carouselImages, ({ one }) => ({
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
+  email: true,
   password: true,
+}).extend({
+  email: z.string().email("Email deve ter um formato válido"),
+});
+
+export const loginSchema = z.object({
+  identifier: z.string().min(1, "Nome de usuário ou email é obrigatório"),
+  password: z.string().min(1, "Senha é obrigatória"),
 });
 
 export const insertPlaceTypeSchema = createInsertSchema(placeTypes).omit({
@@ -105,6 +114,7 @@ export const insertCarouselImageSchema = createInsertSchema(carouselImages).omit
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type LoginData = z.infer<typeof loginSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertPlaceType = z.infer<typeof insertPlaceTypeSchema>;
 export type PlaceType = typeof placeTypes.$inferSelect;
