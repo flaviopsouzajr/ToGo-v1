@@ -8,7 +8,8 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { insertPlaceSchema, insertPlaceTypeSchema, insertCarouselImageSchema, passwordResetRequestSchema, passwordResetSchema } from "@shared/schema";
 import { sendPasswordResetEmail } from "./email-service";
-import { randomBytes } from "crypto";
+import { randomBytes, scrypt } from "crypto";
+import { promisify } from "util";
 
 
 
@@ -413,12 +414,10 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Hash new password (using same method from auth.ts)
-      const { scrypt, randomBytes } = require("crypto");
-      const { promisify } = require("util");
       const scryptAsync = promisify(scrypt);
       
       const salt = randomBytes(16).toString("hex");
-      const buf = await scryptAsync(validData.newPassword, salt, 64);
+      const buf = await scryptAsync(validData.newPassword, salt, 64) as Buffer;
       const hashedPassword = `${buf.toString("hex")}.${salt}`;
 
       // Update user password
