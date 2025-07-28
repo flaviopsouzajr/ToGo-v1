@@ -52,6 +52,16 @@ export const carouselImages = pgTable("carousel_images", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  token: text("token").notNull().unique(),
+  code: varchar("code", { length: 6 }).notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  isUsed: boolean("is_used").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const placesRelations = relations(places, ({ one }) => ({
   type: one(placeTypes, {
     fields: [places.typeId],
@@ -79,6 +89,13 @@ export const carouselImagesRelations = relations(carouselImages, ({ one }) => ({
   }),
 }));
 
+export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [passwordResetTokens.userId],
+    references: [users.id],
+  }),
+}));
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   email: true,
@@ -90,6 +107,15 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export const loginSchema = z.object({
   identifier: z.string().min(1, "Nome de usuário ou email é obrigatório"),
   password: z.string().min(1, "Senha é obrigatória"),
+});
+
+export const passwordResetRequestSchema = z.object({
+  email: z.string().email("Email deve ter um formato válido"),
+});
+
+export const passwordResetSchema = z.object({
+  code: z.string().length(6, "Código deve ter 6 dígitos"),
+  newPassword: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 });
 
 export const insertPlaceTypeSchema = createInsertSchema(placeTypes).omit({
@@ -113,8 +139,15 @@ export const insertCarouselImageSchema = createInsertSchema(carouselImages).omit
   createdBy: true,
 });
 
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type LoginData = z.infer<typeof loginSchema>;
+export type PasswordResetRequest = z.infer<typeof passwordResetRequestSchema>;
+export type PasswordReset = z.infer<typeof passwordResetSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertPlaceType = z.infer<typeof insertPlaceTypeSchema>;
 export type PlaceType = typeof placeTypes.$inferSelect;
@@ -123,3 +156,5 @@ export type Place = typeof places.$inferSelect;
 export type PlaceWithType = Place & { type: PlaceType; createdByUser?: User };
 export type InsertCarouselImage = z.infer<typeof insertCarouselImageSchema>;
 export type CarouselImage = typeof carouselImages.$inferSelect;
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;

@@ -129,6 +129,15 @@ export default function AuthPage() {
                     >
                       {loginMutation.isPending ? "Entrando..." : "Entrar"}
                     </Button>
+                    
+                    <div className="text-center">
+                      <Link 
+                        href="/forgot-password" 
+                        className="text-sm text-togo-primary hover:text-togo-secondary"
+                      >
+                        Esqueci minha senha
+                      </Link>
+                    </div>
                   </form>
                 </CardContent>
               </Card>

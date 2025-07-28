@@ -6,7 +6,9 @@ import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { insertPlaceSchema, insertPlaceTypeSchema, insertCarouselImageSchema } from "@shared/schema";
+import { insertPlaceSchema, insertPlaceTypeSchema, insertCarouselImageSchema, passwordResetRequestSchema, passwordResetSchema } from "@shared/schema";
+import { sendPasswordResetEmail } from "./email-service";
+import { randomBytes } from "crypto";
 
 
 
@@ -335,6 +337,87 @@ export function registerRoutes(app: Express): Server {
       }
       
       res.sendStatus(204);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // Password Reset Routes
+  app.post("/api/password-reset/request", async (req, res, next) => {
+    try {
+      const validData = passwordResetRequestSchema.parse(req.body);
+      const user = await storage.getUserByEmail(validData.email);
+      
+      if (!user) {
+        // Don't reveal if email exists or not for security
+        return res.json({ message: "Se o email existir em nossa base, você receberá as instruções de recuperação." });
+      }
+
+      // Generate 6-digit code and unique token
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      const token = randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+      // Clean expired tokens first
+      await storage.cleanExpiredTokens();
+
+      // Create reset token
+      await storage.createPasswordResetToken({
+        userId: user.id,
+        token,
+        code,
+        expiresAt,
+        isUsed: false,
+      });
+
+      // Send email
+      const emailSent = await sendPasswordResetEmail({
+        to: user.email,
+        code,
+        username: user.username,
+      });
+
+      if (!emailSent) {
+        return res.status(500).json({ message: "Erro ao enviar email. Tente novamente." });
+      }
+
+      res.json({ message: "Se o email existir em nossa base, você receberá as instruções de recuperação." });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/password-reset/verify", async (req, res, next) => {
+    try {
+      const validData = passwordResetSchema.parse(req.body);
+      const resetToken = await storage.getPasswordResetToken(validData.code);
+      
+      if (!resetToken) {
+        return res.status(400).json({ message: "Código inválido ou expirado." });
+      }
+
+      // Get user and update password
+      const user = await storage.getUser(resetToken.userId);
+      if (!user) {
+        return res.status(400).json({ message: "Usuário não encontrado." });
+      }
+
+      // Hash new password (using same method from auth.ts)
+      const { scrypt, randomBytes } = require("crypto");
+      const { promisify } = require("util");
+      const scryptAsync = promisify(scrypt);
+      
+      const salt = randomBytes(16).toString("hex");
+      const buf = await scryptAsync(validData.newPassword, salt, 64);
+      const hashedPassword = `${buf.toString("hex")}.${salt}`;
+
+      // Update user password
+      await storage.updateUser(resetToken.userId, { password: hashedPassword });
+      
+      // Mark token as used
+      await storage.markTokenAsUsed(resetToken.id);
+
+      res.json({ message: "Senha redefinida com sucesso!" });
     } catch (error) {
       next(error);
     }

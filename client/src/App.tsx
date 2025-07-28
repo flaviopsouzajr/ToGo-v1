@@ -13,6 +13,8 @@ import AboutPage from "@/pages/about-page";
 import AdminPage from "@/pages/admin-page";
 import CarouselAdminPage from "@/pages/carousel-admin-page";
 import AuthPage from "@/pages/auth-page";
+import ForgotPasswordPage from "@/pages/forgot-password-page";
+import ResetPasswordPage from "@/pages/reset-password-page";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -23,6 +25,8 @@ function Router() {
       <Route path="/map" component={MapPage} />
       <Route path="/about" component={AboutPage} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/forgot-password" component={ForgotPasswordPage} />
+      <Route path="/reset-password" component={ResetPasswordPage} />
       <Route path="/admin" component={AdminPage} />
       <Route path="/carousel-admin">
         <AdminRoute>

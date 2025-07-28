@@ -1,4 +1,4 @@
-import { users, places, placeTypes, carouselImages, type User, type InsertUser, type Place, type InsertPlace, type PlaceType, type InsertPlaceType, type PlaceWithType, type CarouselImage, type InsertCarouselImage } from "@shared/schema";
+import { users, places, placeTypes, carouselImages, passwordResetTokens, type User, type InsertUser, type Place, type InsertPlace, type PlaceType, type InsertPlaceType, type PlaceWithType, type CarouselImage, type InsertCarouselImage, type PasswordResetToken, type InsertPasswordResetToken } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, like, gte, inArray, sql } from "drizzle-orm";
 import session from "express-session";
@@ -13,6 +13,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByIdentifier(identifier: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, data: Partial<InsertUser>): Promise<User | undefined>;
   
   // Place Types
   getPlaceTypes(): Promise<PlaceType[]>;
@@ -48,6 +49,12 @@ export interface IStorage {
   createCarouselImage(image: InsertCarouselImage, createdBy: number): Promise<CarouselImage>;
   updateCarouselImage(id: number, image: Partial<InsertCarouselImage>): Promise<CarouselImage | undefined>;
   deleteCarouselImage(id: number): Promise<boolean>;
+  
+  // Password Reset Tokens
+  createPasswordResetToken(token: InsertPasswordResetToken): Promise<PasswordResetToken>;
+  getPasswordResetToken(code: string): Promise<PasswordResetToken | undefined>;
+  markTokenAsUsed(id: number): Promise<boolean>;
+  cleanExpiredTokens(): Promise<boolean>;
   
   sessionStore: any;
 }
@@ -92,6 +99,15 @@ export class DatabaseStorage implements IStorage {
       .values(insertUser)
       .returning();
     return user;
+  }
+
+  async updateUser(id: number, data: Partial<InsertUser>): Promise<User | undefined> {
+    const [updated] = await db
+      .update(users)
+      .set(data)
+      .where(eq(users.id, id))
+      .returning();
+    return updated || undefined;
   }
 
   async getPlaceTypes(): Promise<PlaceType[]> {
@@ -315,6 +331,48 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(carouselImages)
       .where(eq(carouselImages.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async createPasswordResetToken(token: InsertPasswordResetToken): Promise<PasswordResetToken> {
+    const [newToken] = await db
+      .insert(passwordResetTokens)
+      .values(token)
+      .returning();
+    return newToken;
+  }
+
+  async getPasswordResetToken(code: string): Promise<PasswordResetToken | undefined> {
+    const [token] = await db
+      .select()
+      .from(passwordResetTokens)
+      .where(
+        and(
+          eq(passwordResetTokens.code, code),
+          eq(passwordResetTokens.isUsed, false),
+          gte(passwordResetTokens.expiresAt, new Date())
+        )
+      );
+    return token || undefined;
+  }
+
+  async markTokenAsUsed(id: number): Promise<boolean> {
+    const result = await db
+      .update(passwordResetTokens)
+      .set({ isUsed: true })
+      .where(eq(passwordResetTokens.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async cleanExpiredTokens(): Promise<boolean> {
+    const result = await db
+      .delete(passwordResetTokens)
+      .where(
+        and(
+          eq(passwordResetTokens.isUsed, false),
+          sql`${passwordResetTokens.expiresAt} < NOW()`
+        )
+      );
     return (result.rowCount ?? 0) > 0;
   }
 }
