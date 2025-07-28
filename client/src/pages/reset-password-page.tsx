@@ -10,6 +10,7 @@ import { MapPin, Shield, CheckCircle, ArrowLeft } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { PasswordResetTest } from "@/components/password-reset-test";
 
 export default function ResetPasswordPage() {
   const [, setLocation] = useLocation();
@@ -24,6 +25,10 @@ export default function ResetPasswordPage() {
       newPassword: "",
     },
   });
+
+  const handleCodeReceived = (code: string) => {
+    form.setValue("code", code);
+  };
 
   const onSubmit = async (data: PasswordReset) => {
     setIsSubmitting(true);
@@ -200,6 +205,9 @@ export default function ResetPasswordPage() {
               Voltar ao login
             </Link>
           </div>
+
+          {/* Development testing component */}
+          <PasswordResetTest onCodeReceived={handleCodeReceived} />
         </div>
       </div>
 

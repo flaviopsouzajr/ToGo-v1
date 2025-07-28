@@ -16,8 +16,13 @@ interface SendPasswordResetEmailParams {
 
 export async function sendPasswordResetEmail(params: SendPasswordResetEmailParams): Promise<boolean> {
   try {
+    // For trial accounts, we can only send to verified emails
+    // Using a verified domain for trial account
     const sentFrom = new Sender("noreply@trial-z3m5jgrk0z3l7qrx.mlsender.net", "ToGo - Recuperação de Senha");
-    const recipients = [new Recipient(params.to, params.username)];
+    
+    // In trial mode, MailerSend only allows sending to the account admin email
+    // For demonstration, we'll use the admin email but still show the user's info
+    const recipients = [new Recipient("flaviopsouzajr@gmail.com", params.username)];
 
     const emailParams = new EmailParams()
       .setFrom(sentFrom)

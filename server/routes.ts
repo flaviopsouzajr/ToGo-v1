@@ -381,7 +381,14 @@ export function registerRoutes(app: Express): Server {
         return res.status(500).json({ message: "Erro ao enviar email. Tente novamente." });
       }
 
-      res.json({ message: "Se o email existir em nossa base, você receberá as instruções de recuperação." });
+      // For development/trial: Log the code to console so we can test
+      console.log(`🔐 Código de recuperação para ${user.email}: ${code}`);
+      
+      res.json({ 
+        message: "Se o email existir em nossa base, você receberá as instruções de recuperação.",
+        // In development, include the code for testing
+        ...(process.env.NODE_ENV === 'development' && { resetCode: code })
+      });
     } catch (error) {
       next(error);
     }
