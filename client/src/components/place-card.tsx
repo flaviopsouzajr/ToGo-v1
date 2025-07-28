@@ -40,11 +40,18 @@ export function PlaceCard({ place, onClick }: PlaceCardProps) {
           >
             {place.type.name}
           </Badge>
-          {place.type.name === "Restaurante" && place.hasRodizio && (
-            <Badge variant="destructive" className="text-xs">
-              Rodízio
-            </Badge>
-          )}
+          <div className="flex gap-2">
+            {place.type.name === "Restaurante" && place.hasRodizio && (
+              <Badge variant="destructive" className="text-xs">
+                Rodízio
+              </Badge>
+            )}
+            {place.petFriendly && (
+              <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 border-green-200">
+                Pet Friendly 🐾
+              </Badge>
+            )}
+          </div>
         </div>
         
         <h3 className="text-xl font-semibold text-gray-900 mb-2">
