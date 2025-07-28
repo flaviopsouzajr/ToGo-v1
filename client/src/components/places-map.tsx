@@ -179,6 +179,13 @@ export function PlacesMap() {
                       </div>
                     </div>
                     
+                    <div className="flex items-center gap-1 text-xs">
+                      <span className="text-gray-600">Pet Friendly:</span>
+                      <span className={place.petFriendly ? "text-green-600" : "text-red-600"}>
+                        {place.petFriendly ? 'Sim 🐾' : 'Não'}
+                      </span>
+                    </div>
+                    
                     {place.tags && place.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {place.tags.slice(0, 3).map((tag, index) => (

@@ -167,6 +167,24 @@ export function PlaceDetailsModal({ place, isOpen, onClose }: PlaceDetailsModalP
                 </div>
               )}
 
+              {/* Pet Friendly */}
+              <div>
+                <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Pet Friendly</h3>
+                <div className="flex items-center space-x-2">
+                  {place.petFriendly ? (
+                    <>
+                      <Check className="h-4 w-4 text-green-500" />
+                      <span className="text-green-600 dark:text-green-400">Sim 🐾</span>
+                    </>
+                  ) : (
+                    <>
+                      <X className="h-4 w-4 text-red-500" />
+                      <span className="text-red-600 dark:text-red-400">Não</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
               {/* Tags */}
               {place.tags && place.tags.length > 0 && (
                 <div>

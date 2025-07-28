@@ -53,6 +53,7 @@ export function PlaceFormSimple({ onSuccess, editingPlace }: PlaceFormProps) {
       description: "",
       instagramProfile: "",
       hasRodizio: false,
+      petFriendly: false,
       isVisited: false,
       tags: [],
     },
@@ -72,6 +73,7 @@ export function PlaceFormSimple({ onSuccess, editingPlace }: PlaceFormProps) {
         description: editingPlace.description || "",
         instagramProfile: editingPlace.instagramProfile || "",
         hasRodizio: editingPlace.hasRodizio || false,
+        petFriendly: editingPlace.petFriendly || false,
         isVisited: editingPlace.isVisited || false,
         rating: editingPlace.rating ? parseFloat(editingPlace.rating) : undefined,
         tags: editingPlace.tags || [],
@@ -92,6 +94,7 @@ export function PlaceFormSimple({ onSuccess, editingPlace }: PlaceFormProps) {
         description: "",
         instagramProfile: "",
         hasRodizio: false,
+        petFriendly: false,
         isVisited: false,
         tags: [],
       });
@@ -416,6 +419,29 @@ export function PlaceFormSimple({ onSuccess, editingPlace }: PlaceFormProps) {
               )}
             />
           )}
+
+          <FormField
+            control={form.control}
+            name="petFriendly"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>
+                    Pet Friendly 🐾
+                  </FormLabel>
+                  <FormDescription>
+                    Marque se o local aceita animais de estimação
+                  </FormDescription>
+                </div>
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}

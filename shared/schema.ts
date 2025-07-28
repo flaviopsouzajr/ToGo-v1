@@ -30,6 +30,7 @@ export const places = pgTable("places", {
   description: text("description"),
   instagramProfile: text("instagram_profile"),
   hasRodizio: boolean("has_rodizio").default(false),
+  petFriendly: boolean("pet_friendly").default(false),
   mainImage: text("main_image"),
   itineraryFile: text("itinerary_file"),
   rating: decimal("rating", { precision: 2, scale: 1 }),
