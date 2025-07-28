@@ -370,24 +370,27 @@ export function registerRoutes(app: Express): Server {
         isUsed: false,
       });
 
-      // Send email
-      const emailSent = await sendPasswordResetEmail({
-        to: user.email,
-        code,
-        username: user.username,
-      });
-
-      if (!emailSent) {
-        return res.status(500).json({ message: "Erro ao enviar email. Tente novamente." });
+      // Try to send email, but don't fail if email service has issues
+      let emailSent = false;
+      try {
+        emailSent = await sendPasswordResetEmail({
+          to: user.email,
+          code,
+          username: user.username,
+        });
+      } catch (error) {
+        console.error('Email service error:', error);
       }
 
-      // For development/trial: Log the code to console so we can test
+      // For development/trial: Always log the code to console for testing
       console.log(`🔐 Código de recuperação para ${user.email}: ${code}`);
       
       res.json({ 
         message: "Se o email existir em nossa base, você receberá as instruções de recuperação.",
         // In development, include the code for testing
-        ...(process.env.NODE_ENV === 'development' && { resetCode: code })
+        ...(process.env.NODE_ENV === 'development' && { resetCode: code }),
+        // Also indicate if email was sent successfully
+        ...(process.env.NODE_ENV === 'development' && { emailSent })
       });
     } catch (error) {
       next(error);

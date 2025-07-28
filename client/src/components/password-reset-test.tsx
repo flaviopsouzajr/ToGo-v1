@@ -40,13 +40,14 @@ export function PasswordResetTest({ onCodeReceived }: PasswordResetTestProps) {
       if (response.ok) {
         if (data.resetCode) {
           setResetCode(data.resetCode);
+          const emailStatus = data.emailSent ? "Email enviado" : "Email não pôde ser enviado (usando modo teste)";
           toast({
             title: "Código gerado",
-            description: "Código de teste disponível (modo desenvolvimento)"
+            description: `${emailStatus} - Código disponível para teste`
           });
         } else {
           toast({
-            title: "Email enviado",
+            title: "Solicitação processada",
             description: data.message
           });
         }
@@ -85,7 +86,7 @@ export function PasswordResetTest({ onCodeReceived }: PasswordResetTestProps) {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            No modo desenvolvimento, o código aparece aqui para facilitar os testes.
+            No modo desenvolvimento, o código aparece aqui para facilitar os testes. O email pode não ser enviado devido às limitações da conta trial do MailerSend.
           </AlertDescription>
         </Alert>
 

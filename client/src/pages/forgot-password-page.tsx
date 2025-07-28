@@ -32,13 +32,13 @@ export default function ForgotPasswordPage() {
       
       setSubmitted(true);
       toast({
-        title: "Email enviado",
+        title: "Solicitação processada",
         description: result.message,
       });
     } catch (error: any) {
       toast({
         title: "Erro",
-        description: error.message || "Erro ao enviar email. Tente novamente.",
+        description: error.message || "Erro ao processar solicitação. Tente novamente.",
         variant: "destructive",
       });
     } finally {
