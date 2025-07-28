@@ -21,7 +21,11 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={HomePage} />
-      <Route path="/places" component={PlacesPage} />
+      <Route path="/places">
+        <ProtectedRoute>
+          <PlacesPage />
+        </ProtectedRoute>
+      </Route>
       <Route path="/map" component={MapPage} />
       <Route path="/about" component={AboutPage} />
       <Route path="/auth" component={AuthPage} />
