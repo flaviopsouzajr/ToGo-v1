@@ -541,7 +541,7 @@ export function registerRoutes(app: Express): Server {
       if (error instanceof Error) {
         if (error.message === "You have already cloned a place from this user") {
           return res.status(409).json({ 
-            message: "Você já clonou um lugar deste amigo. Cada amigo permite apenas um lugar clonado por vez." 
+            message: "Você já clonou este lugar deste amigo." 
           });
         }
         if (error.message === "Place not found") {
