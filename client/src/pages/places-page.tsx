@@ -33,8 +33,8 @@ function PlacesPageContent() {
     queryFn: async () => {
       const params = new URLSearchParams();
       
-      // Para a página de lugares (não admin), sempre filtrar apenas lugares do usuário
-      params.set("onlyMyPlaces", "true");
+      // Filtrar apenas lugares do usuário logado (não é mais necessário o parâmetro)
+      // A API já filtra automaticamente
       
       if (filters.typeIds.length > 0) {
         filters.typeIds.forEach(id => params.append("typeIds", id.toString()));
