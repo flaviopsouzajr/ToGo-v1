@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ArrowLeft, MapPin, Star, User, Heart, Copy, Info } from "lucide-react";
+import { SiInstagram } from "react-icons/si";
 import { StarRating } from "@/components/star-rating";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -78,6 +79,7 @@ export function FriendProfilePage() {
 
   console.log("Friend user data:", friendUser);
   console.log("Numeric friend ID:", numericFriendId);
+  console.log("Friend username:", friendUser?.username);
 
   return (
     <>
@@ -98,7 +100,7 @@ export function FriendProfilePage() {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              @{friendUser?.username || "Amigo"} — Indicações para Amigos
+              @{friendUser?.username || "Carregando..."} — Indicações para Amigos
             </h1>
           </div>
         </div>
@@ -218,9 +220,10 @@ export function FriendProfilePage() {
                         href={`https://instagram.com/${place.instagramProfile.replace('@', '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-pink-500 hover:text-pink-600 text-sm"
+                        className="text-pink-500 hover:text-pink-600 text-sm flex items-center gap-1"
                         onClick={(e) => e.stopPropagation()}
                       >
+                        <SiInstagram className="w-4 h-4" />
                         {place.instagramProfile}
                       </a>
                     </div>
