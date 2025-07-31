@@ -524,6 +524,22 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Clone place from friend
+  app.post("/api/places/:placeId/clone", requireAuth, async (req, res) => {
+    try {
+      const placeId = parseInt(req.params.placeId);
+      if (isNaN(placeId)) {
+        return res.status(400).json({ message: "Invalid place ID" });
+      }
+
+      const clonedPlace = await storage.clonePlace(placeId, req.user.id);
+      res.json(clonedPlace);
+    } catch (error) {
+      console.error("Error cloning place:", error);
+      res.status(500).json({ message: "Failed to clone place" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

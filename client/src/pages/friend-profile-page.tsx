@@ -1,21 +1,48 @@
 import { useParams } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, MapPin, Star, Calendar, User, Heart } from "lucide-react";
+import { ArrowLeft, MapPin, Star, Calendar, User, Heart, Copy } from "lucide-react";
 import { StarRating } from "@/components/star-rating";
 import { Link } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import type { PlaceWithType } from "@shared/schema";
 
 export function FriendProfilePage() {
   const { friendId } = useParams<{ friendId: string }>();
   const numericFriendId = parseInt(friendId || "0");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch friend's recommendations
   const { data: recommendations = [], isLoading: recommendationsLoading } = useQuery<PlaceWithType[]>({
     queryKey: ["/api/friends", numericFriendId, "recommendations"],
     enabled: !!numericFriendId,
+  });
+
+  // Clone place mutation
+  const clonePlaceMutation = useMutation({
+    mutationFn: async (placeId: number) => {
+      return apiRequest(`/api/places/${placeId}/clone`, {
+        method: "POST",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/places"] });
+      toast({
+        title: "Lugar clonado com sucesso!",
+        description: "O lugar foi adicionado à sua lista com avaliação zerada e como não visitado.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao clonar lugar",
+        description: error.message || "Não foi possível clonar o lugar.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Get friend info from first recommendation if available
@@ -190,6 +217,17 @@ export function FriendProfilePage() {
                       </a>
                     </div>
                   )}
+                  
+                  <div className="mt-4 pt-4 border-t">
+                    <Button
+                      onClick={() => clonePlaceMutation.mutate(place.id)}
+                      disabled={clonePlaceMutation.isPending}
+                      className="w-full bg-togo-primary hover:bg-togo-secondary"
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      {clonePlaceMutation.isPending ? "Clonando..." : "Clonar Lugar"}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}

@@ -63,6 +63,7 @@ export interface IStorage {
   removeFriend(userId: number, friendId: number): Promise<boolean>;
   isFriend(userId: number, friendId: number): Promise<boolean>;
   getFriendRecommendations(friendId: number): Promise<PlaceWithType[]>;
+  clonePlace(placeId: number, userId: number): Promise<Place>;
   
   sessionStore: any;
 }
@@ -496,6 +497,62 @@ export class DatabaseStorage implements IStorage {
       ...result,
       type: result.type as PlaceType
     })) as PlaceWithType[];
+  }
+
+  async clonePlace(placeId: number, userId: number): Promise<Place> {
+    // First, get the original place
+    const originalPlace = await this.getPlace(placeId);
+    if (!originalPlace) {
+      throw new Error("Place not found");
+    }
+
+    // Check if user already cloned this place
+    const existingClone = await db
+      .select()
+      .from(places)
+      .where(
+        and(
+          eq(places.createdBy, userId),
+          eq(places.isClone, true),
+          eq(places.clonedFromUserId, originalPlace.createdBy || 0)
+        )
+      )
+      .limit(1);
+
+    if (existingClone.length > 0) {
+      throw new Error("You have already cloned a place from this user");
+    }
+
+    // Create clone with modified data
+    const cloneData = {
+      name: originalPlace.name,
+      typeId: originalPlace.typeId,
+      stateId: originalPlace.stateId,
+      stateName: originalPlace.stateName,
+      cityId: originalPlace.cityId,
+      cityName: originalPlace.cityName,
+      address: originalPlace.address,
+      description: originalPlace.description,
+      instagramProfile: originalPlace.instagramProfile,
+      hasRodizio: originalPlace.hasRodizio,
+      petFriendly: originalPlace.petFriendly,
+      recommendToFriends: false, // Reset to false for clone
+      mainImage: originalPlace.mainImage,
+      itineraryFile: originalPlace.itineraryFile,
+      rating: "0", // Reset rating
+      isVisited: false, // Reset visit status
+      tags: originalPlace.tags,
+      isClone: true,
+      clonedFromUserId: originalPlace.createdBy,
+      createdBy: userId,
+    };
+
+    const [clonedPlace] = await db
+      .insert(places)
+      .values(cloneData)
+      .returning();
+
+    return clonedPlace;
   }
 }
 

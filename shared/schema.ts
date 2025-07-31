@@ -37,6 +37,8 @@ export const places = pgTable("places", {
   rating: decimal("rating", { precision: 2, scale: 1 }),
   isVisited: boolean("is_visited").default(false),
   tags: text("tags").array(),
+  isClone: boolean("is_clone").default(false),
+  clonedFromUserId: integer("cloned_from_user_id").references(() => users.id),
   createdBy: integer("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -78,6 +80,10 @@ export const placesRelations = relations(places, ({ one }) => ({
   }),
   createdByUser: one(users, {
     fields: [places.createdBy],
+    references: [users.id],
+  }),
+  clonedFromUser: one(users, {
+    fields: [places.clonedFromUserId],
     references: [users.id],
   }),
 }));
