@@ -513,7 +513,7 @@ export class DatabaseStorage implements IStorage {
       throw new Error("Place not found");
     }
 
-    // Check if user already cloned this place
+    // Check if user already cloned this specific place
     const existingClone = await db
       .select()
       .from(places)
@@ -521,13 +521,14 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(places.createdBy, userId),
           eq(places.isClone, true),
+          eq(places.name, originalPlace.name),
           eq(places.clonedFromUserId, originalPlace.createdBy || 0)
         )
       )
       .limit(1);
 
     if (existingClone.length > 0) {
-      throw new Error("You have already cloned a place from this user");
+      throw new Error("You have already cloned this specific place");
     }
 
     // Create clone with modified data
