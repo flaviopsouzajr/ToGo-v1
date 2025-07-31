@@ -9,6 +9,7 @@ import { Users, Search, UserPlus, Trash2, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Navigation } from "@/components/navigation";
+import { Link } from "wouter";
 import type { FriendWithUser, User } from "@shared/schema";
 
 export function FriendsPage() {
