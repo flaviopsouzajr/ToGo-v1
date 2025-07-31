@@ -6,13 +6,16 @@ async function throwIfResNotOk(res: Response) {
       const contentType = res.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
         const json = await res.json();
-        throw new Error(json.message || `Erro ${res.status}`);
+        const error = new Error(json.message || `Erro ${res.status}`);
+        // Add response data to error for better handling in components
+        (error as any).response = { data: json, status: res.status };
+        throw error;
       } else {
         // If response is not JSON, provide a generic error message
         throw new Error(`Erro ${res.status}: ${res.statusText}`);
       }
     } catch (error) {
-      if (error instanceof Error && error.message.startsWith("Erro")) {
+      if (error instanceof Error && (error.message.startsWith("Erro") || (error as any).response)) {
         throw error;
       }
       throw new Error(`Erro ${res.status}: ${res.statusText}`);

@@ -47,13 +47,24 @@ export function FriendProfilePage() {
       toast({
         title: "Lugar clonado com sucesso!",
         description: "O lugar foi adicionado à sua lista com avaliação zerada e como não visitado.",
+        duration: 4000,
       });
     },
     onError: (error: any) => {
+      // Extract the actual error message from the response
+      let errorMessage = "Não foi possível clonar o lugar.";
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Erro ao clonar lugar",
-        description: error.message || "Não foi possível clonar o lugar.",
+        title: "Não foi possível clonar",
+        description: errorMessage,
         variant: "destructive",
+        duration: 6000, // Show for 6 seconds
       });
     },
   });
