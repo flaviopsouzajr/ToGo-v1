@@ -27,8 +27,9 @@ export function FriendProfilePage() {
   });
 
   // Fetch friend's recommendations
-  const { data: recommendations = [], isLoading: recommendationsLoading } = useQuery<PlaceWithType[]>({
+  const { data: recommendations = [], isLoading: recommendationsLoading, error: recommendationsError } = useQuery<PlaceWithType[]>({
     queryKey: ["/api/friends", numericFriendId, "recommendations"],
+    queryFn: () => apiRequest(`/api/friends/${numericFriendId}/recommendations`),
     enabled: !!numericFriendId,
   });
 
@@ -64,6 +65,10 @@ export function FriendProfilePage() {
         </div>
       </>
     );
+  }
+
+  if (recommendationsError) {
+    console.error("Recommendations error:", recommendationsError);
   }
 
   return (
