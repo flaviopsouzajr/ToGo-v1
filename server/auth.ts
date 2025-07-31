@@ -114,4 +114,25 @@ export function setupAuth(app: Express) {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     res.json(req.user);
   });
+
+  // Get user by ID (for friend profiles)
+  app.get("/api/users/:id", async (req, res, next) => {
+    try {
+      const userId = parseInt(req.params.id);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Return user without sensitive info
+      const { password, ...userInfo } = user;
+      res.json(userInfo);
+    } catch (error) {
+      next(error);
+    }
+  });
 }

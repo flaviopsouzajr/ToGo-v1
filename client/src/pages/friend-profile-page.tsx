@@ -8,13 +8,20 @@ import { StarRating } from "@/components/star-rating";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import type { PlaceWithType } from "@shared/schema";
+import { Navigation } from "@/components/navigation";
+import type { PlaceWithType, User as UserType } from "@shared/schema";
 
 export function FriendProfilePage() {
   const { friendId } = useParams<{ friendId: string }>();
   const numericFriendId = parseInt(friendId || "0");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch friend's user info
+  const { data: friendUser, isLoading: userLoading } = useQuery<UserType>({
+    queryKey: ["/api/users", numericFriendId],
+    enabled: !!numericFriendId,
+  });
 
   // Fetch friend's recommendations
   const { data: recommendations = [], isLoading: recommendationsLoading } = useQuery<PlaceWithType[]>({
@@ -45,19 +52,21 @@ export function FriendProfilePage() {
     },
   });
 
-  // Get friend info from first recommendation if available
-  const friendInfo = recommendations[0]?.createdByUser;
-
-  if (recommendationsLoading) {
+  if (userLoading || recommendationsLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Carregando perfil do amigo...</div>
-      </div>
+      <>
+        <Navigation />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">Carregando perfil do amigo...</div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <>
+      <Navigation />
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Header */}
       <div className="mb-6">
         <Link href="/friends">
@@ -73,7 +82,7 @@ export function FriendProfilePage() {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              {friendInfo?.username || "Amigo"}
+              {friendUser?.username || "Amigo"}
             </h1>
             <p className="text-gray-600">Indicações para Amigos</p>
           </div>
@@ -234,6 +243,7 @@ export function FriendProfilePage() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }

@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Users, Search, UserPlus, Trash2, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { Navigation } from "@/components/navigation";
 import type { FriendWithUser, User } from "@shared/schema";
 
 export function FriendsPage() {
@@ -110,7 +111,9 @@ export function FriendsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <>
+      <Navigation />
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
           <Users className="w-8 h-8 text-togo-primary" />
@@ -247,6 +250,7 @@ export function FriendsPage() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
