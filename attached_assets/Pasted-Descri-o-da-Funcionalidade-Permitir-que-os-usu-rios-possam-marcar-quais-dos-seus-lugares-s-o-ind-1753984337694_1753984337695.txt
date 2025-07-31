@@ -1,0 +1,57 @@
+Descrição da Funcionalidade:
+
+Permitir que os usuários possam marcar quais dos seus lugares são “indicações para amigos”. Quando outro usuário visitar o perfil desse amigo, poderá visualizar os lugares indicados e ter a opção de clonar qualquer um deles para seu próprio cadastro, mantendo todos os dados do original, exceto a avaliação (zerada) e o status de visita (como "Não"). Além disso, o sistema deve registrar se o lugar foi clonado, e de quem foi clonado.
+
+✅ Especificações Técnicas:
+1. Campo “Indicar para Amigos”
+Adicionado ao formulário de cadastro/edição de lugares.
+
+Checkbox ou botão com rótulo: “Indicar este lugar para amigos”.
+
+Lugares indicados aparecem no perfil público do usuário que os marcou.
+
+2. Clonagem de Lugar
+No perfil de um amigo, o usuário pode ver a lista de indicações.
+
+Cada card da indicação terá botão “Clonar Lugar”.
+
+Ao clicar em clonar:
+
+Será criado um novo lugar vinculado ao usuário logado.
+
+Todas as informações do lugar original devem ser copiadas, incluindo:
+
+Nome, tipo, imagem (URL), cidade, estado, descrição, endereço, pet friendly, tags, se tem rodízio, roteiro, etc.
+
+O novo lugar terá:
+
+status_visita = "Não"
+
+avaliacao = 0
+
+3. Campos de Controle na Tabela places
+Adicionar dois novos campos:
+
+sql
+Copy
+Edit
+is_clone BOOLEAN DEFAULT false
+cloned_from_user_id INTEGER (relacionado à tabela de usuários)
+is_clone: indica se o lugar foi clonado ou não.
+
+cloned_from_user_id: armazena o user_id do usuário de quem o lugar foi clonado (se aplicável).
+
+Esses dados não precisam ser exibidos ao usuário, mas ficam disponíveis no backend para futuras funcionalidades.
+
+4. Validação
+O sistema deve impedir clonagem duplicada do mesmo lugar para o mesmo usuário (opcional).
+
+Exibir mensagem: “Lugar clonado com sucesso!”
+
+⚠️ Restrições:
+Nenhuma funcionalidade existente (cadastro normal, mapa, login, feed, carrossel, etc.) deve ser alterada.
+
+A funcionalidade deve ser implementada de forma isolada e compatível com os padrões atuais do sistema.
+
+✅ Resumo Simplificado:
+Permitir marcar lugares como “Indicação para Amigos” e permitir que amigos clonem esses lugares para seu próprio cadastro. Ao clonar, herdar todas as informações, mas com avaliação = 0 e status de visita = "Não". Adicionar controle na tabela places para marcar se o lugar foi clonado e de qual usuário foi clonado. Nenhuma funcionalidade existente deve ser afetada.
