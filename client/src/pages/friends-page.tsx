@@ -230,15 +230,16 @@ export function FriendsPage() {
                   </div>
                   
                   <div className="flex gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="flex-1"
-                      onClick={() => window.open(`/friend-profile/${friendship.friendId}`, '_blank')}
-                    >
-                      <MapPin className="w-4 h-4 mr-1" />
-                      Ver Perfil
-                    </Button>
+                    <Link href={`/friend-profile/${friendship.friendId}`}>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="flex-1 w-full"
+                      >
+                        <MapPin className="w-4 h-4 mr-1" />
+                        Ver Perfil
+                      </Button>
+                    </Link>
                   </div>
                   
                   <div className="mt-3 text-xs text-gray-500">

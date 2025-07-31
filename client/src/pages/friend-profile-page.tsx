@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, MapPin, Star, Calendar, User, Heart, Copy } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ArrowLeft, MapPin, Star, User, Heart, Copy, Info } from "lucide-react";
 import { StarRating } from "@/components/star-rating";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +18,7 @@ export function FriendProfilePage() {
   const numericFriendId = parseInt(friendId || "0");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedPlace, setSelectedPlace] = useState<PlaceWithType | null>(null);
 
   // Fetch friend's user info
   const { data: friendUser, isLoading: userLoading } = useQuery<UserType>({
@@ -82,9 +85,8 @@ export function FriendProfilePage() {
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              {friendUser?.username || "Amigo"}
+              @{friendUser?.username || "Amigo"} — Indicações para Amigos
             </h1>
-            <p className="text-gray-600">Indicações para Amigos</p>
           </div>
         </div>
       </div>
@@ -113,7 +115,8 @@ export function FriendProfilePage() {
             {recommendations.map((place) => (
               <Card 
                 key={place.id} 
-                className="overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                className="overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer"
+                onClick={() => setSelectedPlace(place)}
               >
                 {place.mainImage && (
                   <img 
@@ -196,24 +199,6 @@ export function FriendProfilePage() {
                     </div>
                   )}
                   
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center">
-                      {place.isVisited ? (
-                        <>
-                          <span className="text-togo-primary font-medium">Visitado</span>
-                          <div className="w-2 h-2 bg-togo-primary rounded-full ml-2"></div>
-                        </>
-                      ) : (
-                        <span className="text-gray-500 font-medium">Para visitar</span>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      {new Date(place.createdAt).toLocaleDateString('pt-BR')}
-                    </div>
-                  </div>
-                  
                   {place.instagramProfile && (
                     <div className="mt-3 pt-3 border-t">
                       <a 
@@ -221,6 +206,7 @@ export function FriendProfilePage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-pink-500 hover:text-pink-600 text-sm"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         {place.instagramProfile}
                       </a>
@@ -229,12 +215,15 @@ export function FriendProfilePage() {
                   
                   <div className="mt-4 pt-4 border-t">
                     <Button
-                      onClick={() => clonePlaceMutation.mutate(place.id)}
-                      disabled={clonePlaceMutation.isPending}
-                      className="w-full bg-togo-primary hover:bg-togo-secondary"
+                      variant="outline"
+                      className="w-full"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPlace(place);
+                      }}
                     >
-                      <Copy className="w-4 h-4 mr-2" />
-                      {clonePlaceMutation.isPending ? "Clonando..." : "Clonar Lugar"}
+                      <Info className="w-4 h-4 mr-2" />
+                      Ver Detalhes
                     </Button>
                   </div>
                 </CardContent>
@@ -243,6 +232,136 @@ export function FriendProfilePage() {
           </div>
         )}
       </div>
+      
+      {/* Modal de Detalhes do Lugar */}
+      {selectedPlace && (
+        <Dialog open={!!selectedPlace} onOpenChange={() => setSelectedPlace(null)}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold">
+                {selectedPlace.name}
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* Imagem */}
+              {selectedPlace.mainImage && (
+                <div className="w-full h-64 overflow-hidden rounded-lg">
+                  <img 
+                    src={selectedPlace.mainImage} 
+                    alt={selectedPlace.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              
+              {/* Informações Básicas */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Badge 
+                    variant="secondary" 
+                    className={`
+                      ${selectedPlace.type?.name === "Restaurante" ? "bg-togo-primary text-white" : ""}
+                      ${selectedPlace.type?.name === "Ponto Turístico" ? "bg-togo-secondary text-white" : ""}
+                      ${selectedPlace.type?.name === "Cidade" ? "bg-togo-light text-white" : ""}
+                    `}
+                  >
+                    {selectedPlace.type?.name || 'Tipo não definido'}
+                  </Badge>
+                  
+                  <div className="flex gap-2">
+                    {selectedPlace.type?.name === "Restaurante" && selectedPlace.hasRodizio && (
+                      <Badge variant="destructive" className="text-xs">
+                        Rodízio
+                      </Badge>
+                    )}
+                    {selectedPlace.petFriendly && (
+                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 border-green-200">
+                        Pet Friendly 🐾
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex items-center text-gray-600">
+                  <MapPin className="w-5 h-5 mr-2" />
+                  <span className="text-lg">{selectedPlace.cityName}, {selectedPlace.stateName}</span>
+                </div>
+                
+                {selectedPlace.address && (
+                  <p className="text-gray-600 bg-gray-50 p-3 rounded-lg">
+                    <strong>Endereço:</strong> {selectedPlace.address}
+                  </p>
+                )}
+                
+                {selectedPlace.rating && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Avaliação:</span>
+                    <StarRating rating={parseFloat(selectedPlace.rating)} />
+                  </div>
+                )}
+                
+                {selectedPlace.description && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">Descrição:</h4>
+                    <p className="text-gray-700 leading-relaxed">
+                      {selectedPlace.description}
+                    </p>
+                  </div>
+                )}
+                
+                {selectedPlace.tags && selectedPlace.tags.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">Tags:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedPlace.tags.map((tag, index) => (
+                        <span 
+                          key={index} 
+                          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {selectedPlace.instagramProfile && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">Instagram:</h4>
+                    <a 
+                      href={`https://instagram.com/${selectedPlace.instagramProfile.replace('@', '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-pink-500 hover:text-pink-600 font-medium"
+                    >
+                      {selectedPlace.instagramProfile}
+                    </a>
+                  </div>
+                )}
+              </div>
+              
+              {/* Botão Clonar */}
+              <div className="pt-4 border-t">
+                <Button
+                  onClick={() => {
+                    clonePlaceMutation.mutate(selectedPlace.id);
+                    setSelectedPlace(null);
+                  }}
+                  disabled={clonePlaceMutation.isPending}
+                  className="w-full bg-togo-primary hover:bg-togo-secondary text-lg py-3"
+                >
+                  <Copy className="w-5 h-5 mr-2" />
+                  {clonePlaceMutation.isPending ? "Clonando..." : "Clonar Lugar"}
+                </Button>
+                <p className="text-sm text-gray-500 mt-2 text-center">
+                  O lugar será adicionado à sua lista com avaliação zerada e como não visitado.
+                </p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
       </div>
     </>
   );
