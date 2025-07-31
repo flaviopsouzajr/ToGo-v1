@@ -127,9 +127,12 @@ export function registerRoutes(app: Express): Server {
     try {
       const filters: any = {};
       
+      // Debug log
+      console.log(`[DEBUG] User ${req.user!.username} (ID: ${req.user!.id}) requesting places`);
+      
       // Sempre filtrar pelos lugares criados pelo usuário logado
       // Não mostrar lugares clonados por outros usuários
-      filters.createdBy = req.user.id;
+      filters.createdBy = req.user!.id;
       
       if (req.query.typeIds) {
         filters.typeIds = Array.isArray(req.query.typeIds) 
@@ -145,6 +148,7 @@ export function registerRoutes(app: Express): Server {
       if (req.query.search) filters.search = req.query.search as string;
 
       const places = await storage.getPlaces(filters);
+      console.log(`[DEBUG] Found ${places.length} places for user ${req.user!.id}: ${places.map(p => p.name).join(', ')}`);
       res.json(places);
     } catch (error) {
       next(error);
@@ -257,7 +261,9 @@ export function registerRoutes(app: Express): Server {
   // Stats Route
   app.get("/api/stats", requireAuth, async (req, res, next) => {
     try {
-      const stats = await storage.getStats(req.user.id);
+      console.log(`[DEBUG] User ${req.user!.username} (ID: ${req.user!.id}) requesting stats`);
+      const stats = await storage.getStats(req.user!.id);
+      console.log(`[DEBUG] Stats for user ${req.user!.id}:`, stats);
       res.json(stats);
     } catch (error) {
       next(error);
@@ -437,7 +443,9 @@ export function registerRoutes(app: Express): Server {
   // Friends routes
   app.get("/api/friends", requireAuth, async (req, res) => {
     try {
-      const friends = await storage.getFriends(req.user.id);
+      console.log(`[DEBUG] User ${req.user!.username} (ID: ${req.user!.id}) requesting friends`);
+      const friends = await storage.getFriends(req.user!.id);
+      console.log(`[DEBUG] Found ${friends.length} friends for user ${req.user!.id}`);
       res.json(friends);
     } catch (error) {
       console.error("Error fetching friends:", error);
