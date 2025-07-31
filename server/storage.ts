@@ -1,4 +1,4 @@
-import { users, places, placeTypes, carouselImages, passwordResetTokens, type User, type InsertUser, type Place, type InsertPlace, type PlaceType, type InsertPlaceType, type PlaceWithType, type CarouselImage, type InsertCarouselImage, type PasswordResetToken, type InsertPasswordResetToken } from "@shared/schema";
+import { users, places, placeTypes, carouselImages, passwordResetTokens, friendships, type User, type InsertUser, type Place, type InsertPlace, type PlaceType, type InsertPlaceType, type PlaceWithType, type CarouselImage, type InsertCarouselImage, type PasswordResetToken, type InsertPasswordResetToken, type Friendship, type InsertFriendship, type FriendWithUser } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, like, gte, inArray, sql } from "drizzle-orm";
 import session from "express-session";
@@ -55,6 +55,14 @@ export interface IStorage {
   getPasswordResetToken(code: string): Promise<PasswordResetToken | undefined>;
   markTokenAsUsed(id: number): Promise<boolean>;
   cleanExpiredTokens(): Promise<boolean>;
+  
+  // Friendships
+  getFriends(userId: number): Promise<FriendWithUser[]>;
+  searchUsers(query: string, excludeUserId: number): Promise<User[]>;
+  addFriend(userId: number, friendId: number): Promise<Friendship>;
+  removeFriend(userId: number, friendId: number): Promise<boolean>;
+  isFriend(userId: number, friendId: number): Promise<boolean>;
+  getFriendRecommendations(friendId: number): Promise<PlaceWithType[]>;
   
   sessionStore: any;
 }
@@ -376,6 +384,118 @@ export class DatabaseStorage implements IStorage {
         )
       );
     return (result.rowCount ?? 0) > 0;
+  }
+
+  // Friendship methods
+  async getFriends(userId: number): Promise<FriendWithUser[]> {
+    const results = await db
+      .select({
+        id: friendships.id,
+        userId: friendships.userId,
+        friendId: friendships.friendId,
+        createdAt: friendships.createdAt,
+        friend: {
+          id: users.id,
+          username: users.username,
+          email: users.email,
+          isAdmin: users.isAdmin,
+          createdAt: users.createdAt,
+        }
+      })
+      .from(friendships)
+      .innerJoin(users, eq(friendships.friendId, users.id))
+      .where(eq(friendships.userId, userId))
+      .orderBy(desc(friendships.createdAt));
+
+    return results.map(result => ({
+      ...result,
+      friend: result.friend as User
+    })) as FriendWithUser[];
+  }
+
+  async searchUsers(query: string, excludeUserId: number): Promise<User[]> {
+    const results = await db
+      .select()
+      .from(users)
+      .where(
+        and(
+          sql`${users.id} != ${excludeUserId}`,
+          sql`(${users.username} ILIKE ${`%${query}%`} OR ${users.email} ILIKE ${`%${query}%`})`
+        )
+      )
+      .limit(10);
+    
+    return results;
+  }
+
+  async addFriend(userId: number, friendId: number): Promise<Friendship> {
+    const [friendship] = await db
+      .insert(friendships)
+      .values({ userId, friendId })
+      .returning();
+    return friendship;
+  }
+
+  async removeFriend(userId: number, friendId: number): Promise<boolean> {
+    const result = await db
+      .delete(friendships)
+      .where(and(eq(friendships.userId, userId), eq(friendships.friendId, friendId)));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async isFriend(userId: number, friendId: number): Promise<boolean> {
+    const [friendship] = await db
+      .select()
+      .from(friendships)
+      .where(and(eq(friendships.userId, userId), eq(friendships.friendId, friendId)))
+      .limit(1);
+    return !!friendship;
+  }
+
+  async getFriendRecommendations(friendId: number): Promise<PlaceWithType[]> {
+    const query = db
+      .select({
+        id: places.id,
+        name: places.name,
+        typeId: places.typeId,
+        stateId: places.stateId,
+        stateName: places.stateName,
+        cityId: places.cityId,
+        cityName: places.cityName,
+        address: places.address,
+        description: places.description,
+        instagramProfile: places.instagramProfile,
+        hasRodizio: places.hasRodizio,
+        petFriendly: places.petFriendly,
+        recommendToFriends: places.recommendToFriends,
+        mainImage: places.mainImage,
+        itineraryFile: places.itineraryFile,
+        rating: places.rating,
+        isVisited: places.isVisited,
+        tags: places.tags,
+        createdBy: places.createdBy,
+        createdAt: places.createdAt,
+        updatedAt: places.updatedAt,
+        type: {
+          id: placeTypes.id,
+          name: placeTypes.name,
+          createdAt: placeTypes.createdAt,
+        }
+      })
+      .from(places)
+      .innerJoin(placeTypes, eq(places.typeId, placeTypes.id))
+      .where(and(
+        eq(places.createdBy, friendId),
+        eq(places.recommendToFriends, true)
+      ))
+      .orderBy(desc(places.createdAt));
+
+    const results = await query;
+    
+    return results.map(result => ({
+      ...result,
+      type: result.type as PlaceType
+    })) as PlaceWithType[];
   }
 }
 

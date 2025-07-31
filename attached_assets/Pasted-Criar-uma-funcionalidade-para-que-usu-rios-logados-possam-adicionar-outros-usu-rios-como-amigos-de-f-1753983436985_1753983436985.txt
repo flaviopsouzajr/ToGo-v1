@@ -1,0 +1,56 @@
+Criar uma funcionalidade para que usuários logados possam adicionar outros usuários como amigos de forma unidirecional (sem necessidade de aceitação). Essa funcionalidade será centralizada em uma nova aba chamada "Amigos", onde será possível ver a lista de amigos já adicionados e também buscar e adicionar novos amigos diretamente nessa tela. Também será possível visitar o perfil de cada amigo para visualizar seus lugares marcados como "Indicações para Amigos".
+
+✅ Especificações Técnicas:
+1. Nova Aba "Amigos" no Menu
+Visível somente para usuários logados.
+
+Deve conter:
+
+a) Lista de Amigos (Seguindo)
+Exibe todos os usuários que o usuário logado adicionou como amigo.
+
+Cada amigo deve ter:
+
+Nome/usuário
+
+Botão “Ver Perfil”
+
+b) Adicionar Novo Amigo
+Campo para buscar usuários por nome de usuário ou e-mail.
+
+Resultados devem exibir botão “Adicionar Amigo”.
+
+Ao clicar, o usuário é imediatamente adicionado como amigo, sem necessidade de confirmação.
+
+Exibir mensagem de sucesso: “Agora você está seguindo [nome do usuário]”.
+
+2. Perfil Público do Amigo
+Acessado ao clicar em “Ver Perfil”.
+
+Exibe:
+
+Nome do usuário
+
+Lista dos lugares que ele marcou como Indicações para Amigos
+
+Apenas quem adicionou o usuário como amigo pode visualizar essas indicações.
+
+📌 Relacionamento Unidirecional
+O relacionamento será armazenado como:
+
+user_id (quem segue)
+
+friend_id (quem está sendo seguido)
+
+Não há retorno automático de amizade, ou seja, o amigo adicionado não precisa aceitar e não vê quem o adicionou, a menos que também siga de volta.
+
+⚠️ Regras:
+Nenhuma outra funcionalidade do sistema deve ser afetada.
+
+Cadastro de lugares, login, mapa, etc., devem continuar funcionando normalmente.
+
+Essa alteração deve ser modular e independente.
+
+✅ Resumo Simplificado:
+Criar aba “Amigos” que exibe amigos adicionados (seguindo) e permite buscar e adicionar novos amigos. O relacionamento é unidirecional (não precisa aceitar). Permite visitar o perfil do amigo para visualizar os lugares marcados como “Indicações para Amigos”. Nenhuma funcionalidade existente deve ser alterada.
+

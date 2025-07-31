@@ -63,6 +63,18 @@ export function Navigation() {
                   Mapa
                 </Link>
               )}
+              {user && (
+                <Link
+                  href="/friends"
+                  className={`transition-colors ${
+                    location === "/friends" 
+                      ? "text-togo-primary font-medium" 
+                      : "text-gray-700 hover:text-primary"
+                  }`}
+                >
+                  Amigos
+                </Link>
+              )}
               <Link
                 href="/about"
                 className={`transition-colors ${

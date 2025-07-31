@@ -432,6 +432,98 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Friends routes
+  app.get("/api/friends", requireAuth, async (req, res) => {
+    try {
+      const friends = await storage.getFriends(req.user.id);
+      res.json(friends);
+    } catch (error) {
+      console.error("Error fetching friends:", error);
+      res.status(500).json({ message: "Failed to fetch friends" });
+    }
+  });
+
+  app.get("/api/search-users", requireAuth, async (req, res) => {
+    try {
+      const { q } = req.query;
+      if (!q || typeof q !== 'string') {
+        return res.status(400).json({ message: "Search query is required" });
+      }
+      
+      const users = await storage.searchUsers(q, req.user.id);
+      res.json(users);
+    } catch (error) {
+      console.error("Error searching users:", error);
+      res.status(500).json({ message: "Failed to search users" });
+    }
+  });
+
+  app.post("/api/friends", requireAuth, async (req, res) => {
+    try {
+      const { friendId } = req.body;
+      if (!friendId || typeof friendId !== 'number') {
+        return res.status(400).json({ message: "Friend ID is required" });
+      }
+
+      // Check if already friends
+      const isAlreadyFriend = await storage.isFriend(req.user.id, friendId);
+      if (isAlreadyFriend) {
+        return res.status(400).json({ message: "User is already a friend" });
+      }
+
+      // Check if trying to add themselves
+      if (req.user.id === friendId) {
+        return res.status(400).json({ message: "Cannot add yourself as friend" });
+      }
+
+      const friendship = await storage.addFriend(req.user.id, friendId);
+      res.json(friendship);
+    } catch (error) {
+      console.error("Error adding friend:", error);
+      res.status(500).json({ message: "Failed to add friend" });
+    }
+  });
+
+  app.delete("/api/friends/:friendId", requireAuth, async (req, res) => {
+    try {
+      const friendId = parseInt(req.params.friendId);
+      if (isNaN(friendId)) {
+        return res.status(400).json({ message: "Invalid friend ID" });
+      }
+
+      const success = await storage.removeFriend(req.user.id, friendId);
+      if (!success) {
+        return res.status(404).json({ message: "Friendship not found" });
+      }
+
+      res.json({ message: "Friend removed successfully" });
+    } catch (error) {
+      console.error("Error removing friend:", error);
+      res.status(500).json({ message: "Failed to remove friend" });
+    }
+  });
+
+  app.get("/api/friends/:friendId/recommendations", requireAuth, async (req, res) => {
+    try {
+      const friendId = parseInt(req.params.friendId);
+      if (isNaN(friendId)) {
+        return res.status(400).json({ message: "Invalid friend ID" });
+      }
+
+      // Check if user is actually following this friend
+      const isFriend = await storage.isFriend(req.user.id, friendId);
+      if (!isFriend) {
+        return res.status(403).json({ message: "You can only view recommendations from your friends" });
+      }
+
+      const recommendations = await storage.getFriendRecommendations(friendId);
+      res.json(recommendations);
+    } catch (error) {
+      console.error("Error fetching friend recommendations:", error);
+      res.status(500).json({ message: "Failed to fetch recommendations" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

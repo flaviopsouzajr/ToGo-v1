@@ -15,6 +15,8 @@ import CarouselAdminPage from "@/pages/carousel-admin-page";
 import AuthPage from "@/pages/auth-page";
 import ForgotPasswordPage from "@/pages/forgot-password-page";
 import ResetPasswordPage from "@/pages/reset-password-page";
+import { FriendsPage } from "@/pages/friends-page";
+import { FriendProfilePage } from "@/pages/friend-profile-page";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -27,6 +29,16 @@ function Router() {
         </ProtectedRoute>
       </Route>
       <Route path="/map" component={MapPage} />
+      <Route path="/friends">
+        <ProtectedRoute>
+          <FriendsPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/friend-profile/:friendId">
+        <ProtectedRoute>
+          <FriendProfilePage />
+        </ProtectedRoute>
+      </Route>
       <Route path="/about" component={AboutPage} />
       <Route path="/auth" component={AuthPage} />
       <Route path="/forgot-password" component={ForgotPasswordPage} />

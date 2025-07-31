@@ -31,6 +31,7 @@ export const places = pgTable("places", {
   instagramProfile: text("instagram_profile"),
   hasRodizio: boolean("has_rodizio").default(false),
   petFriendly: boolean("pet_friendly").default(false),
+  recommendToFriends: boolean("recommend_to_friends").default(false),
   mainImage: text("main_image"),
   itineraryFile: text("itinerary_file"),
   rating: decimal("rating", { precision: 2, scale: 1 }),
@@ -63,6 +64,13 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const friendships = pgTable("friendships", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  friendId: integer("friend_id").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const placesRelations = relations(places, ({ one }) => ({
   type: one(placeTypes, {
     fields: [places.typeId],
@@ -70,6 +78,17 @@ export const placesRelations = relations(places, ({ one }) => ({
   }),
   createdByUser: one(users, {
     fields: [places.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const friendshipsRelations = relations(friendships, ({ one }) => ({
+  user: one(users, {
+    fields: [friendships.userId],
+    references: [users.id],
+  }),
+  friend: one(users, {
+    fields: [friendships.friendId],
     references: [users.id],
   }),
 }));
@@ -159,3 +178,11 @@ export type InsertCarouselImage = z.infer<typeof insertCarouselImageSchema>;
 export type CarouselImage = typeof carouselImages.$inferSelect;
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+
+export const insertFriendshipSchema = createInsertSchema(friendships).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertFriendship = z.infer<typeof insertFriendshipSchema>;
+export type Friendship = typeof friendships.$inferSelect;
+export type FriendWithUser = Friendship & { friend: User };
