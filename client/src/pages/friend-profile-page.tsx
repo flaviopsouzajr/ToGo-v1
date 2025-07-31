@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ArrowLeft, MapPin, Star, User, Heart, Copy, Info } from "lucide-react";
 import { StarRating } from "@/components/star-rating";
 import { Link } from "wouter";
@@ -21,8 +21,9 @@ export function FriendProfilePage() {
   const [selectedPlace, setSelectedPlace] = useState<PlaceWithType | null>(null);
 
   // Fetch friend's user info
-  const { data: friendUser, isLoading: userLoading } = useQuery<UserType>({
+  const { data: friendUser, isLoading: userLoading, error: userError } = useQuery<UserType>({
     queryKey: ["/api/users", numericFriendId],
+    queryFn: () => apiRequest(`/api/users/${numericFriendId}`),
     enabled: !!numericFriendId,
   });
 
@@ -70,6 +71,13 @@ export function FriendProfilePage() {
   if (recommendationsError) {
     console.error("Recommendations error:", recommendationsError);
   }
+
+  if (userError) {
+    console.error("User error:", userError);
+  }
+
+  console.log("Friend user data:", friendUser);
+  console.log("Numeric friend ID:", numericFriendId);
 
   return (
     <>
@@ -246,6 +254,9 @@ export function FriendProfilePage() {
               <DialogTitle className="text-2xl font-bold">
                 {selectedPlace.name}
               </DialogTitle>
+              <DialogDescription>
+                Detalhes do lugar indicado pelo seu amigo
+              </DialogDescription>
             </DialogHeader>
             
             <div className="space-y-6">
