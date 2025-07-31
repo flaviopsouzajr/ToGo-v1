@@ -39,6 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
+      // Invalidate all queries to refresh data for the new user
+      queryClient.invalidateQueries();
       toast({
         title: "Login realizado com sucesso",
         description: `Bem-vindo, ${user.username}!`,
@@ -62,6 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
+      // Invalidate all queries to refresh data for the new user
+      queryClient.invalidateQueries();
       toast({
         title: "Conta criada com sucesso",
         description: `Bem-vindo ao ToGo, ${user.username}!`,
@@ -84,6 +88,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/user"], null);
+      // Clear all cached data on logout
+      queryClient.clear();
       toast({
         title: "Logout realizado com sucesso",
         description: "Até logo!",
