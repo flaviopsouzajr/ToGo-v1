@@ -125,9 +125,13 @@ export function registerRoutes(app: Express): Server {
   // Places Routes
   app.get("/api/places", requireAuth, async (req, res, next) => {
     try {
-      const filters: any = {
-        createdBy: req.user.id // Filtrar apenas lugares criados pelo usuário logado
-      };
+      const filters: any = {};
+      
+      // Para usuários não-admin, filtrar apenas os lugares que eles criaram
+      // Para admins, permitir ver todos os lugares se não especificado filtro de usuário
+      if (!req.user.isAdmin || req.query.onlyMyPlaces === 'true') {
+        filters.createdBy = req.user.id;
+      }
       
       if (req.query.typeIds) {
         filters.typeIds = Array.isArray(req.query.typeIds) 
