@@ -458,7 +458,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getFriendRecommendations(friendId: number): Promise<PlaceWithType[]> {
-    const query = db
+    const results = await db
       .select({
         id: places.id,
         name: places.name,
@@ -478,6 +478,8 @@ export class DatabaseStorage implements IStorage {
         rating: places.rating,
         isVisited: places.isVisited,
         tags: places.tags,
+        isClone: places.isClone,
+        clonedFromUserId: places.clonedFromUserId,
         createdBy: places.createdBy,
         createdAt: places.createdAt,
         updatedAt: places.updatedAt,
@@ -494,8 +496,6 @@ export class DatabaseStorage implements IStorage {
         eq(places.recommendToFriends, true)
       ))
       .orderBy(desc(places.createdAt));
-
-    const results = await query;
     
     return results.map(result => ({
       ...result,

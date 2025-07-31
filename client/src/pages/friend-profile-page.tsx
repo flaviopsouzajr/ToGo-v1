@@ -124,16 +124,16 @@ export function FriendProfilePage() {
                     <Badge 
                       variant="secondary" 
                       className={`
-                        ${place.type.name === "Restaurante" ? "bg-togo-primary text-white" : ""}
-                        ${place.type.name === "Ponto Turístico" ? "bg-togo-secondary text-white" : ""}
-                        ${place.type.name === "Cidade" ? "bg-togo-light text-white" : ""}
+                        ${place.type?.name === "Restaurante" ? "bg-togo-primary text-white" : ""}
+                        ${place.type?.name === "Ponto Turístico" ? "bg-togo-secondary text-white" : ""}
+                        ${place.type?.name === "Cidade" ? "bg-togo-light text-white" : ""}
                       `}
                     >
-                      {place.type.name}
+                      {place.type?.name || 'Tipo não definido'}
                     </Badge>
                     
                     <div className="flex gap-2">
-                      {place.type.name === "Restaurante" && place.hasRodizio && (
+                      {place.type?.name === "Restaurante" && place.hasRodizio && (
                         <Badge variant="destructive" className="text-xs">
                           Rodízio
                         </Badge>
