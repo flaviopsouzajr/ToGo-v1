@@ -54,6 +54,7 @@ export function PlaceFormSimple({ onSuccess, editingPlace }: PlaceFormProps) {
       instagramProfile: "",
       hasRodizio: false,
       petFriendly: false,
+      recommendToFriends: false,
       isVisited: false,
       tags: [],
     },
@@ -74,6 +75,7 @@ export function PlaceFormSimple({ onSuccess, editingPlace }: PlaceFormProps) {
         instagramProfile: editingPlace.instagramProfile || "",
         hasRodizio: editingPlace.hasRodizio || false,
         petFriendly: editingPlace.petFriendly || false,
+        recommendToFriends: editingPlace.recommendToFriends || false,
         isVisited: editingPlace.isVisited || false,
         rating: editingPlace.rating ? parseFloat(editingPlace.rating) : undefined,
         tags: editingPlace.tags || [],
@@ -95,6 +97,7 @@ export function PlaceFormSimple({ onSuccess, editingPlace }: PlaceFormProps) {
         instagramProfile: "",
         hasRodizio: false,
         petFriendly: false,
+        recommendToFriends: false,
         isVisited: false,
         tags: [],
       });
@@ -113,8 +116,10 @@ export function PlaceFormSimple({ onSuccess, editingPlace }: PlaceFormProps) {
 
   const createPlaceMutation = useMutation({
     mutationFn: async (data: InsertPlace) => {
-      const res = await apiRequest("POST", "/api/places", data);
-      return res.json();
+      return await apiRequest("/api/places", {
+        method: "POST",
+        body: data,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/places"] });
@@ -139,8 +144,10 @@ export function PlaceFormSimple({ onSuccess, editingPlace }: PlaceFormProps) {
   const updatePlaceMutation = useMutation({
     mutationFn: async (data: InsertPlace) => {
       if (!editingPlace) throw new Error("No place to edit");
-      const res = await apiRequest("PUT", `/api/places/${editingPlace.id}`, data);
-      return res.json();
+      return await apiRequest(`/api/places/${editingPlace.id}`, {
+        method: "PUT",
+        body: data,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/places"] });

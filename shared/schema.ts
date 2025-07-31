@@ -154,6 +154,8 @@ export const insertPlaceSchema = createInsertSchema(places).omit({
   createdAt: true,
   updatedAt: true,
   createdBy: true,
+  isClone: true,
+  clonedFromUserId: true,
 }).extend({
   rating: z.number().min(0).max(5).optional(),
 });

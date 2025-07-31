@@ -279,12 +279,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePlace(id: number, place: Partial<InsertPlace>): Promise<Place | undefined> {
+    // Convert rating to string if it's a number
+    const processedData = {
+      ...place,
+      rating: typeof place.rating === 'number' ? place.rating.toString() : place.rating,
+      updatedAt: new Date()
+    };
+
     const [updated] = await db
       .update(places)
-      .set({
-        ...place,
-        updatedAt: new Date(),
-      })
+      .set(processedData)
       .where(eq(places.id, id))
       .returning();
     return updated || undefined;
