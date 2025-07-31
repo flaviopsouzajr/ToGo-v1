@@ -536,7 +536,22 @@ export function registerRoutes(app: Express): Server {
       res.json(clonedPlace);
     } catch (error) {
       console.error("Error cloning place:", error);
-      res.status(500).json({ message: "Failed to clone place" });
+      
+      // Check for specific error types and provide user-friendly messages
+      if (error instanceof Error) {
+        if (error.message === "You have already cloned a place from this user") {
+          return res.status(409).json({ 
+            message: "Você já clonou um lugar deste amigo. Cada amigo permite apenas um lugar clonado por vez." 
+          });
+        }
+        if (error.message === "Place not found") {
+          return res.status(404).json({ 
+            message: "Este lugar não foi encontrado ou não está mais disponível." 
+          });
+        }
+      }
+      
+      res.status(500).json({ message: "Não foi possível clonar o lugar. Tente novamente mais tarde." });
     }
   });
 
