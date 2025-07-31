@@ -261,9 +261,19 @@ function AdminPageContent() {
                                 </div>
                               )}
                               <div>
-                                <div className="font-medium text-gray-900">{place.name}</div>
+                                <div className="flex items-center gap-2">
+                                  <div className="font-medium text-gray-900">{place.name}</div>
+                                  {place.isClone && (
+                                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                      Clone
+                                    </Badge>
+                                  )}
+                                </div>
                                 <div className="text-sm text-gray-500">
                                   {new Date(place.createdAt).toLocaleDateString()}
+                                  {place.isClone && place.clonedFromUserId && (
+                                    <span className="ml-2 text-blue-600">• Clonado do usuário #{place.clonedFromUserId}</span>
+                                  )}
                                 </div>
                               </div>
                             </div>
