@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MapPin, Shield, UserPlus, LogIn } from "lucide-react";
 import { Link } from "wouter";
+import { Navigation } from "@/components/navigation";
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
@@ -50,10 +51,12 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left side - Form */}
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
-        <div className="w-full max-w-md">
+    <div className="min-h-screen flex flex-col">
+      <Navigation />
+      <div className="flex-1 flex">
+        {/* Left side - Form */}
+        <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
+          <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <Link href="/" className="inline-flex items-center space-x-2 mb-6">
               <div className="w-12 h-12 bg-togo-primary rounded-xl flex items-center justify-center">
@@ -215,24 +218,25 @@ export default function AuthPage() {
               ← Voltar ao início
             </Link>
           </div>
+          </div>
         </div>
-      </div>
 
-      {/* Right side - Hero */}
-      <div 
-        className="hidden lg:block flex-1 bg-cover bg-center relative"
-        style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')`,
-        }}
-      >
-        <div className="absolute inset-0 bg-togo-primary bg-opacity-80 flex items-center justify-center">
-          <div className="text-white text-center max-w-md">
-            <h2 className="text-4xl font-bold mb-4">
-              Gerencie seus lugares favoritos
-            </h2>
-            <p className="text-xl text-togo-lightest">
-              Cadastre, organize e compartilhe os melhores lugares para visitar com o ToGo.
-            </p>
+        {/* Right side - Hero */}
+        <div 
+          className="hidden lg:block flex-1 bg-cover bg-center relative"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')`,
+          }}
+        >
+          <div className="absolute inset-0 bg-togo-primary bg-opacity-80 flex items-center justify-center">
+            <div className="text-white text-center max-w-md">
+              <h2 className="text-4xl font-bold mb-4">
+                Gerencie seus lugares favoritos
+              </h2>
+              <p className="text-xl text-togo-lightest">
+                Cadastre, organize e compartilhe os melhores lugares para visitar com o ToGo.
+              </p>
+            </div>
           </div>
         </div>
       </div>
