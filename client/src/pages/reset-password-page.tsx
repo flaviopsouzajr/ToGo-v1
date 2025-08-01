@@ -33,7 +33,10 @@ export default function ResetPasswordPage() {
   const onSubmit = async (data: PasswordReset) => {
     setIsSubmitting(true);
     try {
-      const res = await apiRequest("POST", "/api/password-reset/verify", data);
+      const res = await apiRequest("/api/password-reset/verify", {
+        method: "POST",
+        body: JSON.stringify(data)
+      });
       const result = await res.json();
       
       setSuccess(true);
@@ -229,6 +232,59 @@ export default function ResetPasswordPage() {
           </div>
         </div>
       </div>
+      
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="md:col-span-2">
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="w-10 h-10 bg-togo-primary rounded-lg flex items-center justify-center">
+                  <MapPin className="text-white w-6 h-6" />
+                </div>
+                <span className="text-2xl font-bold">ToGo</span>
+              </div>
+              <p className="text-gray-400 mb-6 max-w-md">
+                Sua plataforma completa para descobrir e catalogar os melhores lugares para visitar em todo o Brasil.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold mb-4">Links Úteis</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li>
+                  <Link href="/" className="hover:text-white transition-colors">
+                    Início
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/places" className="hover:text-white transition-colors">
+                    Lugares
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/about" className="hover:text-white transition-colors">
+                    Sobre
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-semibold mb-4">Contato</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li>contato@togo.com.br</li>
+                <li>(11) 9999-9999</li>
+                <li>São Paulo, SP</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+            <p>© 2025 ToGo. Todos os direitos reservados.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

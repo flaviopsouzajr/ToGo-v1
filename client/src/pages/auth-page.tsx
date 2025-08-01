@@ -238,18 +238,18 @@ export default function AuthPage() {
       </div>
       
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
+            <div className="md:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-togo-primary rounded-lg flex items-center justify-center">
-                  <MapPin className="text-white w-5 h-5" />
+                <div className="w-10 h-10 bg-togo-primary rounded-lg flex items-center justify-center">
+                  <MapPin className="text-white w-6 h-6" />
                 </div>
-                <span className="text-xl font-bold">ToGo</span>
+                <span className="text-2xl font-bold">ToGo</span>
               </div>
-              <p className="text-gray-400">
-                Sua plataforma completa para descobrir e catalogar os melhores lugares para visitar.
+              <p className="text-gray-400 mb-6 max-w-md">
+                Sua plataforma completa para descobrir e catalogar os melhores lugares para visitar em todo o Brasil.
               </p>
             </div>
 
