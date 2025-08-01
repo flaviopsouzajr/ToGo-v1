@@ -75,6 +75,18 @@ export function Navigation() {
                   Amigos
                 </Link>
               )}
+              {user && (
+                <Link
+                  href="/my-recommendations"
+                  className={`transition-colors ${
+                    location === "/my-recommendations" 
+                      ? "text-togo-primary font-medium" 
+                      : "text-gray-700 hover:text-primary"
+                  }`}
+                >
+                  Minhas Indicações
+                </Link>
+              )}
               <Link
                 href="/about"
                 className={`transition-colors ${
