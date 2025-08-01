@@ -75,18 +75,7 @@ export function Navigation() {
                   Amigos
                 </Link>
               )}
-              {user && (
-                <Link
-                  href="/my-recommendations"
-                  className={`transition-colors ${
-                    location === "/my-recommendations" 
-                      ? "text-togo-primary font-medium" 
-                      : "text-gray-700 hover:text-primary"
-                  }`}
-                >
-                  Minhas Indicações
-                </Link>
-              )}
+
               <Link
                 href="/about"
                 className={`transition-colors ${
@@ -108,6 +97,11 @@ export function Navigation() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href="/my-recommendations" className="w-full">
+                      Minhas Indicações
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/admin" className="w-full">
                       Painel Admin
