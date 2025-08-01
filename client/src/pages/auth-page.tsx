@@ -62,7 +62,6 @@ export default function AuthPage() {
               <div className="w-12 h-12 bg-togo-primary rounded-xl flex items-center justify-center">
                 <MapPin className="text-white w-7 h-7" />
               </div>
-              <span className="text-3xl font-bold togo-primary">ToGo</span>
             </Link>
             <div className="w-16 h-16 bg-togo-primary rounded-xl flex items-center justify-center mx-auto mb-4">
               <Shield className="text-white w-8 h-8" />
