@@ -20,8 +20,8 @@ export default function AuthPage() {
   // Redirect if already logged in - use useEffect to avoid render issues
   useEffect(() => {
     if (user) {
-      // Redirecionar admin para página do carrossel, usuários normais para home
-      setLocation(user.isAdmin ? "/carousel-admin" : "/");
+      // Redirecionar todos os usuários para a página inicial
+      setLocation("/");
     }
   }, [user, setLocation]);
 
