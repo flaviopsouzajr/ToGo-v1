@@ -83,6 +83,9 @@ export function ImageCropper({ imageSrc, isOpen, onClose, onCropComplete }: Imag
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  console.log("ImageCropper rendering with:", { imageSrc, isOpen, imageLoaded });
 
   const onCropChange = useCallback((crop: Point) => {
     setCrop(crop);
@@ -150,6 +153,10 @@ export function ImageCropper({ imageSrc, isOpen, onClose, onCropComplete }: Imag
               onCropComplete={onCropCompleteCallback}
               onZoomChange={setZoom}
               onRotationChange={setRotation}
+              onMediaLoaded={() => {
+                console.log("Image loaded successfully in cropper");
+                setImageLoaded(true);
+              }}
               cropShape="round"
               showGrid={true}
               style={{
@@ -160,6 +167,11 @@ export function ImageCropper({ imageSrc, isOpen, onClose, onCropComplete }: Imag
                 }
               }}
             />
+            {!imageLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-200 bg-opacity-50">
+                <div className="text-gray-600">Carregando imagem...</div>
+              </div>
+            )}
           </div>
 
           {/* Zoom Control */}

@@ -165,14 +165,26 @@ export default function ProfilePage() {
       console.log("Original imageUrl:", imageUrl);
       
       if (imageUrl && typeof imageUrl === 'string') {
-        // Use proxy endpoint to handle CORS issues with Google Cloud Storage
+        // Convert image to base64 data URL for cropper compatibility
         try {
-          const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
-          console.log("Using proxy URL for cropper:", proxyUrl);
-          setTempImageSrc(proxyUrl);
-          setShowCropper(true);
+          const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(imageUrl)}&format=base64`;
+          console.log("Fetching base64 image from proxy:", proxyUrl);
+          
+          const response = await fetch(proxyUrl);
+          if (response.ok) {
+            const data = await response.json();
+            console.log("Got base64 data URL, length:", data.dataUrl.length);
+            setTempImageSrc(data.dataUrl);
+            setShowCropper(true);
+          } else {
+            console.error("Failed to get base64 image");
+            // Fallback to original proxy URL
+            const fallbackUrl = `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+            setTempImageSrc(fallbackUrl);
+            setShowCropper(true);
+          }
         } catch (error) {
-          console.error("Error setting proxy URL:", error);
+          console.error("Error converting to base64:", error);
           // Fallback to original URL
           setTempImageSrc(imageUrl);
           setShowCropper(true);

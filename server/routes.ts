@@ -277,13 +277,13 @@ export function registerRoutes(app: Express): Server {
   // Proxy para imagens do Google Drive e Cloud Storage
   app.get("/api/proxy-image", async (req, res, next) => {
     try {
-      const { url } = req.query;
+      const { url, format } = req.query;
       
       if (!url || typeof url !== 'string') {
         return res.status(400).json({ message: "URL is required" });
       }
 
-      console.log("Proxy request for URL:", url);
+      console.log("Proxy request for URL:", url, "format:", format);
 
       // Fazer a requisição para a URL da imagem
       const response = await fetch(url);
@@ -293,7 +293,22 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ message: "Image not found" });
       }
 
-      // Copiar headers relevantes
+      // Get buffer
+      const buffer = await response.arrayBuffer();
+      console.log("Proxy successful, buffer size:", buffer.byteLength);
+
+      // If requesting base64 format, return as JSON
+      if (format === 'base64') {
+        const contentType = response.headers.get('content-type') || 'image/jpeg';
+        const base64 = Buffer.from(buffer).toString('base64');
+        const dataUrl = `data:${contentType};base64,${base64}`;
+        
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        return res.json({ dataUrl });
+      }
+
+      // Otherwise, return binary image
       const contentType = response.headers.get('content-type');
       if (contentType) {
         res.setHeader('content-type', contentType);
@@ -304,9 +319,6 @@ export function registerRoutes(app: Express): Server {
       res.setHeader('Access-Control-Allow-Methods', 'GET');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-      // Enviar a imagem
-      const buffer = await response.arrayBuffer();
-      console.log("Proxy successful, buffer size:", buffer.byteLength);
       res.send(Buffer.from(buffer));
     } catch (error) {
       console.error("Proxy error:", error);
