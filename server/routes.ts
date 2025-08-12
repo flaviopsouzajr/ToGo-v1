@@ -647,9 +647,14 @@ export function registerRoutes(app: Express): Server {
           return res.status(404).json({ message: "Usuário não encontrado" });
         }
 
-        // Remove password from response
+        // Add timestamp for cache busting and remove password
+        const timestamp = Date.now();
         const { password, ...userResponse } = updatedUser;
-        res.json(userResponse);
+        res.json({
+          ...userResponse,
+          profilePictureUrl: objectPath,
+          timestamp // Add timestamp for frontend cache management
+        });
       } catch (objectError) {
         console.error("Object storage error:", objectError);
         // Fallback: save the URL directly if object storage fails
@@ -661,8 +666,14 @@ export function registerRoutes(app: Express): Server {
           return res.status(404).json({ message: "Usuário não encontrado" });
         }
 
+        // Add timestamp for cache busting and remove password (fallback case)
+        const timestamp = Date.now();
         const { password, ...userResponse } = updatedUser;
-        res.json(userResponse);
+        res.json({
+          ...userResponse,
+          profilePictureUrl: imageUrl,
+          timestamp // Add timestamp for frontend cache management
+        });
       }
     } catch (error) {
       console.error("Error updating profile picture:", error);

@@ -181,10 +181,6 @@ export default function ProfilePage() {
         throw new Error("Falha no upload da imagem");
       }
       
-      // Update preview immediately
-      const croppedImageUrl = URL.createObjectURL(croppedImageBlob);
-      setPreviewImage(croppedImageUrl);
-      
       // Update profile picture in backend
       const response = await fetch("/api/profile-picture", {
         method: "PUT",
@@ -197,13 +193,26 @@ export default function ProfilePage() {
       if (!response.ok) {
         throw new Error("Falha ao atualizar foto de perfil");
       }
+
+      const updatedUser = await response.json();
+      
+      // Update preview with the new image URL from backend (with cache buster)
+      const timestamp = Date.now();
+      const newImageUrl = `${updatedUser.profilePictureUrl}?v=${timestamp}`;
+      setPreviewImage(newImageUrl);
       
       toast({
         title: "Foto de perfil atualizada",
         description: "Sua foto de perfil foi atualizada com sucesso."
       });
       
-      // Invalidate user query to refresh data
+      // Force refresh user data with updated profile picture
+      queryClient.setQueryData(["/api/user"], (oldData: any) => ({
+        ...oldData,
+        profilePictureUrl: `${updatedUser.profilePictureUrl}?v=${timestamp}`
+      }));
+      
+      // Also invalidate to ensure fresh data on next fetch
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
     } catch (error) {
       toast({
@@ -268,7 +277,8 @@ export default function ProfilePage() {
                 <Avatar className="w-32 h-32">
                   <AvatarImage 
                     src={previewImage || user?.profilePictureUrl || ""} 
-                    alt={user?.name || user?.username || "Perfil"} 
+                    alt={user?.name || user?.username || "Perfil"}
+                    key={previewImage || user?.profilePictureUrl} // Force re-render when URL changes
                   />
                   <AvatarFallback className="text-2xl bg-togo-primary text-white">
                     {(user?.name || user?.username || "?").charAt(0).toUpperCase()}

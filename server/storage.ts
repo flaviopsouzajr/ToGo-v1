@@ -13,7 +13,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByIdentifier(identifier: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUser(id: number, data: Partial<InsertUser>): Promise<User | undefined>;
+  updateUser(id: number, data: Partial<InsertUser & { name?: string; profilePictureUrl?: string }>): Promise<User | undefined>;
   
   // Place Types
   getPlaceTypes(): Promise<PlaceType[]>;
