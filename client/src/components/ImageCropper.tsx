@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import Cropper from "react-easy-crop";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ZoomIn, ZoomOut, RotateCcw, Check, X } from "lucide-react";
@@ -119,19 +119,26 @@ export function ImageCropper({ imageSrc, isOpen, onClose, onCropComplete }: Imag
     setRotation(0);
   };
 
+  if (!imageSrc || !isOpen) {
+    return null;
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md w-full">
+      <DialogContent className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <ZoomIn className="w-5 h-5 mr-2" />
             Ajustar Foto de Perfil
           </DialogTitle>
+          <DialogDescription>
+            Use os controles abaixo para ajustar o enquadramento da sua foto de perfil
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">
           {/* Cropper Area */}
-          <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
+          <div className="relative w-full h-80 bg-gray-100 rounded-lg overflow-hidden">
             <Cropper
               image={imageSrc}
               crop={crop}
@@ -141,8 +148,16 @@ export function ImageCropper({ imageSrc, isOpen, onClose, onCropComplete }: Imag
               onCropChange={onCropChange}
               onCropComplete={onCropCompleteCallback}
               onZoomChange={setZoom}
+              onRotationChange={setRotation}
               cropShape="round"
-              showGrid={false}
+              showGrid={true}
+              style={{
+                containerStyle: {
+                  width: '100%',
+                  height: '100%',
+                  position: 'relative'
+                }
+              }}
             />
           </div>
 
@@ -166,9 +181,29 @@ export function ImageCropper({ imageSrc, isOpen, onClose, onCropComplete }: Imag
             </div>
           </div>
 
+          {/* Rotation Control */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Rotação</span>
+              <span className="text-sm text-gray-500">{rotation}°</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RotateCcw className="w-4 h-4 text-gray-400" />
+              <Slider
+                value={[rotation]}
+                onValueChange={(value) => setRotation(value[0])}
+                min={-180}
+                max={180}
+                step={1}
+                className="flex-1"
+              />
+              <RotateCcw className="w-4 h-4 text-gray-400" />
+            </div>
+          </div>
+
           {/* Instructions */}
           <div className="text-xs text-gray-500 text-center">
-            Arraste a imagem para posicionar e use o controle de zoom para ajustar o enquadramento
+            Arraste a imagem para posicionar, use zoom e rotação para ajustar o enquadramento
           </div>
         </div>
 

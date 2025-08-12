@@ -171,13 +171,10 @@ export default function ProfilePage() {
       
       const { uploadURL } = await uploadResponse.json();
       
-      // Upload cropped image
+      // Upload cropped image  
       const uploadResult = await fetch(uploadURL, {
         method: "PUT",
-        body: croppedImageBlob,
-        headers: {
-          "Content-Type": "image/jpeg"
-        }
+        body: croppedImageBlob
       });
       
       if (!uploadResult.ok) {
