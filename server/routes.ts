@@ -557,6 +557,35 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Profile update endpoint
+  app.put("/api/user/profile", requireAuth, async (req, res) => {
+    try {
+      const { name, email, profilePictureUrl } = req.body;
+      
+      // Validate email format if provided
+      if (email && !/\S+@\S+\.\S+/.test(email)) {
+        return res.status(400).json({ message: "Formato de email inválido" });
+      }
+
+      const updatedUser = await storage.updateUser(req.user.id, {
+        name,
+        email,
+        profilePictureUrl
+      });
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      // Remove password from response
+      const { password, ...userResponse } = updatedUser;
+      res.json(userResponse);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Falha ao atualizar perfil" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

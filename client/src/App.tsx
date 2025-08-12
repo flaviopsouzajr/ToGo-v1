@@ -18,6 +18,7 @@ import ResetPasswordPage from "@/pages/reset-password-page";
 import { FriendsPage } from "@/pages/friends-page";
 import { FriendProfilePage } from "@/pages/friend-profile-page";
 import MyRecommendationsPage from "@/pages/my-recommendations-page";
+import ProfilePage from "@/pages/profile-page";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -43,6 +44,11 @@ function Router() {
       <Route path="/my-recommendations">
         <ProtectedRoute>
           <MyRecommendationsPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/profile">
+        <ProtectedRoute>
+          <ProfilePage />
         </ProtectedRoute>
       </Route>
       <Route path="/about" component={AboutPage} />

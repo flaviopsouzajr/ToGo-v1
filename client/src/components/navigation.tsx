@@ -98,6 +98,11 @@ export function Navigation() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
+                    <Link href="/profile" className="w-full">
+                      Perfil
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link href="/my-recommendations" className="w-full">
                       Minhas Indicações
                     </Link>
