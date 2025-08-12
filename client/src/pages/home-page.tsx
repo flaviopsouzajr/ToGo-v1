@@ -57,7 +57,7 @@ export default function HomePage() {
             {user ? (
               <>
                 <h1 className="text-4xl md:text-6xl font-bold mb-4">
-                  Bem-vindo, {user.username}!
+                  Bem-vindo, {user.name || user.username}!
                 </h1>
                 <p className="text-xl md:text-2xl mb-8 text-gray-200">
                   Gerencie seus lugares favoritos e descubra novas experiências únicas.
