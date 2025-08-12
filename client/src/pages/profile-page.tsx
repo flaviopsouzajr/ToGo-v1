@@ -110,12 +110,21 @@ export default function ProfilePage() {
 
   const handleGetUploadParameters = async () => {
     try {
-      const response = await apiRequest("/api/objects/upload", {
-        method: "POST"
+      const response = await fetch("/api/objects/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
       });
+      
+      if (!response.ok) {
+        throw new Error("Falha ao gerar URL de upload");
+      }
+      
+      const data = await response.json();
       return {
         method: "PUT" as const,
-        url: response.uploadURL
+        url: data.uploadURL
       };
     } catch (error) {
       toast({
@@ -136,8 +145,38 @@ export default function ProfilePage() {
         // Update preview immediately
         setPreviewImage(imageUrl);
         
-        // Update profile picture in backend
-        updateProfilePictureMutation.mutate(imageUrl);
+        try {
+          // Update profile picture in backend
+          const response = await fetch("/api/profile-picture", {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ imageUrl })
+          });
+
+          if (!response.ok) {
+            throw new Error("Falha ao atualizar foto de perfil");
+          }
+
+          const updatedUser = await response.json();
+          
+          toast({
+            title: "Foto de perfil atualizada",
+            description: "Sua foto de perfil foi atualizada com sucesso."
+          });
+          
+          // Invalidate user query to refresh data
+          queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+        } catch (error) {
+          toast({
+            title: "Erro ao atualizar foto",
+            description: "Ocorreu um erro ao salvar a foto de perfil.",
+            variant: "destructive"
+          });
+          // Revert preview on error
+          setPreviewImage(user?.profilePictureUrl || "");
+        }
       }
     }
   };
@@ -203,8 +242,10 @@ export default function ProfilePage() {
                   onComplete={handleUploadComplete}
                   buttonClassName="w-full"
                 >
-                  <Camera className="w-4 h-4 mr-2" />
-                  Alterar Foto
+                  <div className="flex items-center justify-center">
+                    <Camera className="w-4 h-4 mr-2" />
+                    Alterar Foto
+                  </div>
                 </ObjectUploader>
 
                 <p className="text-xs text-gray-500">

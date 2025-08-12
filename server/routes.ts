@@ -622,29 +622,48 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ message: "URL da imagem é obrigatória" });
       }
 
-      const ObjectStorageService = (await import("./objectStorage")).ObjectStorageService;
-      const objectStorageService = new ObjectStorageService();
-      
-      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
-        imageUrl,
-        {
-          owner: req.user.id.toString(),
-          visibility: "public"
+      console.log("Received imageUrl for profile picture:", imageUrl);
+
+      try {
+        const ObjectStorageService = (await import("./objectStorage")).ObjectStorageService;
+        const objectStorageService = new ObjectStorageService();
+        
+        const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+          imageUrl,
+          {
+            owner: req.user.id.toString(),
+            visibility: "public"
+          }
+        );
+
+        console.log("Generated object path:", objectPath);
+
+        // Update user profile picture in database
+        const updatedUser = await storage.updateUser(req.user.id, {
+          profilePictureUrl: objectPath
+        });
+
+        if (!updatedUser) {
+          return res.status(404).json({ message: "Usuário não encontrado" });
         }
-      );
 
-      // Update user profile picture in database
-      const updatedUser = await storage.updateUser(req.user.id, {
-        profilePictureUrl: objectPath
-      });
+        // Remove password from response
+        const { password, ...userResponse } = updatedUser;
+        res.json(userResponse);
+      } catch (objectError) {
+        console.error("Object storage error:", objectError);
+        // Fallback: save the URL directly if object storage fails
+        const updatedUser = await storage.updateUser(req.user.id, {
+          profilePictureUrl: imageUrl
+        });
 
-      if (!updatedUser) {
-        return res.status(404).json({ message: "Usuário não encontrado" });
+        if (!updatedUser) {
+          return res.status(404).json({ message: "Usuário não encontrado" });
+        }
+
+        const { password, ...userResponse } = updatedUser;
+        res.json(userResponse);
       }
-
-      // Remove password from response
-      const { password, ...userResponse } = updatedUser;
-      res.json(userResponse);
     } catch (error) {
       console.error("Error updating profile picture:", error);
       res.status(500).json({ message: "Falha ao atualizar foto de perfil" });
