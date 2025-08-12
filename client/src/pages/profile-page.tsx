@@ -30,7 +30,7 @@ export default function ProfilePage() {
   // Fetch current user data
   const { data: user, isLoading } = useQuery<UserType>({
     queryKey: ["/api/user"],
-    queryFn: getQueryFn({})
+    queryFn: getQueryFn({ on401: "logout" })
   });
 
   const form = useForm<ProfileUpdateData>({
