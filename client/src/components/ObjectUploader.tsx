@@ -16,7 +16,8 @@ interface ObjectUploaderProps {
     url: string;
   }>;
   onComplete?: (
-    result: UploadResult<Record<string, unknown>, Record<string, unknown>>
+    result: UploadResult<Record<string, unknown>, Record<string, unknown>>,
+    originalFile?: File
   ) => void;
   buttonClassName?: string;
   children: ReactNode;
@@ -59,6 +60,8 @@ export function ObjectUploader({
   children,
 }: ObjectUploaderProps) {
   const [showModal, setShowModal] = useState(false);
+  const [originalFile, setOriginalFile] = useState<File | null>(null);
+
   const [uppy] = useState(() =>
     new Uppy({
       restrictions: {
@@ -71,8 +74,15 @@ export function ObjectUploader({
         shouldUseMultipart: false,
         getUploadParameters: onGetUploadParameters,
       })
+      .on("file-added", (file) => {
+        console.log("File added to uppy:", file.name, file.type);
+        if (file.data instanceof File) {
+          setOriginalFile(file.data);
+        }
+      })
       .on("complete", (result) => {
-        onComplete?.(result);
+        console.log("Upload complete, calling onComplete with original file");
+        onComplete?.(result, originalFile || undefined);
         // Close modal after upload completion with slight delay
         setTimeout(() => setShowModal(false), 500);
       })

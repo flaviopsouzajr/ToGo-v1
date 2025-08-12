@@ -156,16 +156,25 @@ export default function ProfilePage() {
     }
   };
 
-  const handleUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    console.log("Upload complete result:", result);
+  const handleUploadComplete = async (
+    result: UploadResult<Record<string, unknown>, Record<string, unknown>>,
+    originalFile?: File
+  ) => {
+    console.log("Upload complete result:", result, "Original file:", originalFile);
     if (result.successful && result.successful.length > 0) {
       const uploadedFile = result.successful[0];
       const imageUrl = uploadedFile.uploadURL;
       
-      console.log("Original imageUrl:", imageUrl);
+      console.log("ImageUrl from upload:", imageUrl);
       
-      if (imageUrl && typeof imageUrl === 'string') {
-        // Convert image to base64 data URL for cropper compatibility
+      if (originalFile) {
+        // Use the original file for the cropper - this ensures we have the actual image data
+        const blobUrl = URL.createObjectURL(originalFile);
+        console.log("Using original file blob for cropper:", blobUrl);
+        setTempImageSrc(blobUrl);
+        setShowCropper(true);
+      } else if (imageUrl && typeof imageUrl === 'string') {
+        // Fallback: try to fetch from storage via proxy as base64
         try {
           const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(imageUrl)}&format=base64`;
           console.log("Fetching base64 image from proxy:", proxyUrl);
@@ -178,14 +187,11 @@ export default function ProfilePage() {
             setShowCropper(true);
           } else {
             console.error("Failed to get base64 image");
-            // Fallback to original proxy URL
-            const fallbackUrl = `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
-            setTempImageSrc(fallbackUrl);
+            setTempImageSrc(imageUrl);
             setShowCropper(true);
           }
         } catch (error) {
-          console.error("Error converting to base64:", error);
-          // Fallback to original URL
+          console.error("Error preparing image for cropper:", error);
           setTempImageSrc(imageUrl);
           setShowCropper(true);
         }
@@ -287,6 +293,10 @@ export default function ProfilePage() {
 
   const handleCropCancel = () => {
     setShowCropper(false);
+    // Clean up blob URL if it exists
+    if (tempImageSrc && tempImageSrc.startsWith('blob:')) {
+      URL.revokeObjectURL(tempImageSrc);
+    }
     setTempImageSrc("");
   };
 
