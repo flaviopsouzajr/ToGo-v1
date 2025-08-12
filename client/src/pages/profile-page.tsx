@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ObjectUploader } from "@/components/ObjectUploader";
+import { ImageCropper } from "@/components/ImageCropper";
 import { User, Camera, Mail, Tag, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, getQueryFn } from "@/lib/queryClient";
@@ -28,11 +29,13 @@ export default function ProfilePage() {
   const queryClient = useQueryClient();
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [previewImage, setPreviewImage] = useState<string>("");
+  const [showCropper, setShowCropper] = useState(false);
+  const [tempImageSrc, setTempImageSrc] = useState<string>("");
 
   // Fetch current user data
   const { data: user, isLoading } = useQuery<UserType>({
     queryKey: ["/api/user"],
-    queryFn: getQueryFn({ on401: "logout" })
+    queryFn: getQueryFn({})
   });
 
   const form = useForm<ProfileUpdateData>({
@@ -137,48 +140,90 @@ export default function ProfilePage() {
   };
 
   const handleUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    if (result.successful.length > 0) {
+    if (result.successful && result.successful.length > 0) {
       const uploadedFile = result.successful[0];
       const imageUrl = uploadedFile.uploadURL;
       
       if (imageUrl) {
-        // Update preview immediately
-        setPreviewImage(imageUrl);
-        
-        try {
-          // Update profile picture in backend
-          const response = await fetch("/api/profile-picture", {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ imageUrl })
-          });
-
-          if (!response.ok) {
-            throw new Error("Falha ao atualizar foto de perfil");
-          }
-
-          const updatedUser = await response.json();
-          
-          toast({
-            title: "Foto de perfil atualizada",
-            description: "Sua foto de perfil foi atualizada com sucesso."
-          });
-          
-          // Invalidate user query to refresh data
-          queryClient.invalidateQueries({ queryKey: ["/api/user"] });
-        } catch (error) {
-          toast({
-            title: "Erro ao atualizar foto",
-            description: "Ocorreu um erro ao salvar a foto de perfil.",
-            variant: "destructive"
-          });
-          // Revert preview on error
-          setPreviewImage(user?.profilePictureUrl || "");
-        }
+        // Show cropper with uploaded image
+        setTempImageSrc(imageUrl);
+        setShowCropper(true);
       }
     }
+  };
+
+  const handleCropComplete = async (croppedImageBlob: Blob) => {
+    setIsUploadingImage(true);
+    setShowCropper(false);
+    
+    try {
+      // Get upload URL for cropped image
+      const uploadResponse = await fetch("/api/objects/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      
+      if (!uploadResponse.ok) {
+        throw new Error("Falha ao gerar URL de upload");
+      }
+      
+      const { uploadURL } = await uploadResponse.json();
+      
+      // Upload cropped image
+      const uploadResult = await fetch(uploadURL, {
+        method: "PUT",
+        body: croppedImageBlob,
+        headers: {
+          "Content-Type": "image/jpeg"
+        }
+      });
+      
+      if (!uploadResult.ok) {
+        throw new Error("Falha no upload da imagem");
+      }
+      
+      // Update preview immediately
+      const croppedImageUrl = URL.createObjectURL(croppedImageBlob);
+      setPreviewImage(croppedImageUrl);
+      
+      // Update profile picture in backend
+      const response = await fetch("/api/profile-picture", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ imageUrl: uploadURL })
+      });
+
+      if (!response.ok) {
+        throw new Error("Falha ao atualizar foto de perfil");
+      }
+      
+      toast({
+        title: "Foto de perfil atualizada",
+        description: "Sua foto de perfil foi atualizada com sucesso."
+      });
+      
+      // Invalidate user query to refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+    } catch (error) {
+      toast({
+        title: "Erro ao atualizar foto",
+        description: "Ocorreu um erro ao salvar a foto de perfil.",
+        variant: "destructive"
+      });
+      // Revert preview on error
+      setPreviewImage(user?.profilePictureUrl || "");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setTempImageSrc("");
   };
 
   if (isLoading) {
@@ -237,19 +282,25 @@ export default function ProfilePage() {
               <div className="space-y-2">
                 <ObjectUploader
                   maxNumberOfFiles={1}
-                  maxFileSize={2097152} // 2MB
+                  maxFileSize={5242880} // 5MB for better quality before cropping
                   onGetUploadParameters={handleGetUploadParameters}
                   onComplete={handleUploadComplete}
                   buttonClassName="w-full"
                 >
                   <div className="flex items-center justify-center">
-                    <Camera className="w-4 h-4 mr-2" />
-                    Alterar Foto
+                    {isUploadingImage ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Camera className="w-4 h-4 mr-2" />
+                    )}
+                    {isUploadingImage ? "Processando..." : "Alterar Foto"}
                   </div>
                 </ObjectUploader>
 
                 <p className="text-xs text-gray-500">
-                  JPG, PNG ou WebP. Máximo 2MB.
+                  JPG, PNG ou WebP. Máximo 5MB.
+                  <br />
+                  Você poderá ajustar o enquadramento após o upload.
                 </p>
               </div>
             </CardContent>
@@ -346,6 +397,14 @@ export default function ProfilePage() {
           </Card>
         </div>
       </div>
+
+      {/* Image Cropper Modal */}
+      <ImageCropper
+        imageSrc={tempImageSrc}
+        isOpen={showCropper}
+        onClose={handleCropCancel}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 }
