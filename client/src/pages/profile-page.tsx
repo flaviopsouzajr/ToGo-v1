@@ -170,6 +170,7 @@ export default function ProfilePage() {
   };
 
   const handleCropComplete = async (croppedImageBlob: Blob) => {
+    console.log("handleCropComplete called with blob size:", croppedImageBlob.size);
     setIsUploadingImage(true);
     setShowCropper(false);
     

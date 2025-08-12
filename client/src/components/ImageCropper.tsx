@@ -105,6 +105,7 @@ export function ImageCropper({ imageSrc, isOpen, onClose, onCropComplete }: Imag
         croppedAreaPixels,
         rotation
       );
+      console.log("ImageCropper: calling onCropComplete with blob size:", croppedImage.size);
       onCropComplete(croppedImage);
     } catch (error) {
       console.error('Error cropping image:', error);
