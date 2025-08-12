@@ -157,11 +157,13 @@ export default function ProfilePage() {
   };
 
   const handleUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+    console.log("Upload complete result:", result);
     if (result.successful && result.successful.length > 0) {
       const uploadedFile = result.successful[0];
       const imageUrl = uploadedFile.uploadURL;
       
-      if (imageUrl) {
+      console.log("Setting temp image src:", imageUrl);
+      if (imageUrl && typeof imageUrl === 'string') {
         // Show cropper with uploaded image
         setTempImageSrc(imageUrl);
         setShowCropper(true);

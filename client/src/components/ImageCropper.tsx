@@ -126,7 +126,7 @@ export function ImageCropper({ imageSrc, isOpen, onClose, onCropComplete }: Imag
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg w-full max-h-[90vh] overflow-y-auto" style={{ zIndex: 9999 }}>
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <ZoomIn className="w-5 h-5 mr-2" />
