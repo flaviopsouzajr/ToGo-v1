@@ -32,7 +32,7 @@ export default function ProfilePage() {
   // Fetch current user data
   const { data: user, isLoading } = useQuery<UserType>({
     queryKey: ["/api/user"],
-    queryFn: getQueryFn({})
+    queryFn: getQueryFn({ on401: "redirect" })
   });
 
   const form = useForm<ProfileUpdateData>({
@@ -91,7 +91,7 @@ export default function ProfilePage() {
 
   const updateProfilePictureMutation = useMutation({
     mutationFn: (imageUrl: string) => 
-      apiRequest("/api/profile-picture", {
+      apiRequest("/api/user/profile-picture", {
         method: "PUT",
         body: JSON.stringify({ imageUrl })
       }),
@@ -241,9 +241,9 @@ export default function ProfilePage() {
               <div className="flex justify-center">
                 <Avatar className="w-32 h-32">
                   <AvatarImage 
-                    src={previewImage || user?.profilePictureUrl || ""} 
+                    src={previewImage ? `${previewImage}?t=${Date.now()}` : user?.profilePictureUrl ? `${user.profilePictureUrl}?t=${Date.now()}` : ""} 
                     alt={user?.name || user?.username || "Perfil"}
-                    key={previewImage || user?.profilePictureUrl} // Force re-render when URL changes
+                    key={`${previewImage || user?.profilePictureUrl}-${Date.now()}`} // Force re-render when URL changes
                   />
                   <AvatarFallback className="text-2xl bg-togo-primary text-white">
                     {(user?.name || user?.username || "?").charAt(0).toUpperCase()}
@@ -252,7 +252,7 @@ export default function ProfilePage() {
               </div>
 
               <ProfileImageUploader
-                currentImageUrl={previewImage || user?.profilePictureUrl}
+                currentImageUrl={previewImage || user?.profilePictureUrl || undefined}
                 onImageUpdate={handleImageUpdate}
                 isUploading={isUploadingImage}
               />

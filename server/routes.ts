@@ -612,14 +612,17 @@ export function registerRoutes(app: Express): Server {
   // Object storage endpoints for profile pictures
   app.get("/objects/:objectPath(*)", async (req, res) => {
     try {
+      console.log("Serving object at path:", req.path);
       const ObjectStorageService = (await import("./objectStorage")).ObjectStorageService;
       const objectStorageService = new ObjectStorageService();
       const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      console.log("Object file found, serving...");
       objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
       const { ObjectNotFoundError } = await import("./objectStorage");
-      console.error("Error checking object access:", error);
+      console.error("Error serving object:", error);
       if (error instanceof ObjectNotFoundError) {
+        console.log("Object not found:", req.path);
         return res.sendStatus(404);
       }
       return res.sendStatus(500);
