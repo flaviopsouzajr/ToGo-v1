@@ -274,7 +274,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Proxy para imagens do Google Drive
+  // Proxy para imagens do Google Drive e Cloud Storage
   app.get("/api/proxy-image", async (req, res, next) => {
     try {
       const { url } = req.query;
@@ -283,10 +283,13 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ message: "URL is required" });
       }
 
+      console.log("Proxy request for URL:", url);
+
       // Fazer a requisição para a URL da imagem
       const response = await fetch(url);
       
       if (!response.ok) {
+        console.log("Proxy response not ok:", response.status, response.statusText);
         return res.status(404).json({ message: "Image not found" });
       }
 
@@ -296,10 +299,17 @@ export function registerRoutes(app: Express): Server {
         res.setHeader('content-type', contentType);
       }
 
+      // Add CORS headers for cropper compatibility
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
       // Enviar a imagem
       const buffer = await response.arrayBuffer();
+      console.log("Proxy successful, buffer size:", buffer.byteLength);
       res.send(Buffer.from(buffer));
     } catch (error) {
+      console.error("Proxy error:", error);
       next(error);
     }
   });

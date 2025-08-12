@@ -165,17 +165,14 @@ export default function ProfilePage() {
       console.log("Original imageUrl:", imageUrl);
       
       if (imageUrl && typeof imageUrl === 'string') {
-        // Convert the storage URL to a blob URL for cropper compatibility
+        // Use proxy endpoint to handle CORS issues with Google Cloud Storage
         try {
-          const response = await fetch(imageUrl);
-          const blob = await response.blob();
-          const blobUrl = URL.createObjectURL(blob);
-          
-          console.log("Setting temp image src with blob URL:", blobUrl);
-          setTempImageSrc(blobUrl);
+          const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+          console.log("Using proxy URL for cropper:", proxyUrl);
+          setTempImageSrc(proxyUrl);
           setShowCropper(true);
         } catch (error) {
-          console.error("Error converting image to blob:", error);
+          console.error("Error setting proxy URL:", error);
           // Fallback to original URL
           setTempImageSrc(imageUrl);
           setShowCropper(true);
@@ -278,10 +275,6 @@ export default function ProfilePage() {
 
   const handleCropCancel = () => {
     setShowCropper(false);
-    // Clean up blob URL if it exists
-    if (tempImageSrc && tempImageSrc.startsWith('blob:')) {
-      URL.revokeObjectURL(tempImageSrc);
-    }
     setTempImageSrc("");
   };
 
