@@ -3,16 +3,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import type { UploadResult } from "@uppy/core";
+
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ObjectUploader } from "@/components/ObjectUploader";
-import { ImageCropper } from "@/components/ImageCropper";
-import { User, Camera, Mail, Tag, Loader2 } from "lucide-react";
+import { ProfileImageUploader } from "@/components/ProfileImageUploader";
+import { User, Mail, Tag, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, getQueryFn } from "@/lib/queryClient";
 import type { User as UserType } from "@shared/schema";
@@ -29,8 +28,6 @@ export default function ProfilePage() {
   const queryClient = useQueryClient();
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [previewImage, setPreviewImage] = useState<string>("");
-  const [showCropper, setShowCropper] = useState(false);
-  const [tempImageSrc, setTempImageSrc] = useState<string>("");
 
   // Fetch current user data
   const { data: user, isLoading } = useQuery<UserType>({
@@ -128,81 +125,11 @@ export default function ProfilePage() {
     updateProfileMutation.mutate(cleanData);
   };
 
-  const handleGetUploadParameters = async () => {
-    try {
-      const response = await fetch("/api/objects/upload", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error("Falha ao gerar URL de upload");
-      }
-      
-      const data = await response.json();
-      return {
-        method: "PUT" as const,
-        url: data.uploadURL
-      };
-    } catch (error) {
-      toast({
-        title: "Erro ao gerar URL de upload",
-        description: "Não foi possível gerar a URL para upload.",
-        variant: "destructive"
-      });
-      throw error;
-    }
-  };
 
-  const handleUploadComplete = async (
-    result: UploadResult<Record<string, unknown>, Record<string, unknown>>,
-    originalFile?: File
-  ) => {
-    console.log("Upload complete result:", result, "Original file:", originalFile);
-    if (result.successful && result.successful.length > 0) {
-      const uploadedFile = result.successful[0];
-      const imageUrl = uploadedFile.uploadURL;
-      
-      console.log("ImageUrl from upload:", imageUrl);
-      
-      if (originalFile) {
-        // Use the original file for the cropper - this ensures we have the actual image data
-        const blobUrl = URL.createObjectURL(originalFile);
-        console.log("Using original file blob for cropper:", blobUrl);
-        setTempImageSrc(blobUrl);
-        setShowCropper(true);
-      } else if (imageUrl && typeof imageUrl === 'string') {
-        // Fallback: try to fetch from storage via proxy as base64
-        try {
-          const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(imageUrl)}&format=base64`;
-          console.log("Fetching base64 image from proxy:", proxyUrl);
-          
-          const response = await fetch(proxyUrl);
-          if (response.ok) {
-            const data = await response.json();
-            console.log("Got base64 data URL, length:", data.dataUrl.length);
-            setTempImageSrc(data.dataUrl);
-            setShowCropper(true);
-          } else {
-            console.error("Failed to get base64 image");
-            setTempImageSrc(imageUrl);
-            setShowCropper(true);
-          }
-        } catch (error) {
-          console.error("Error preparing image for cropper:", error);
-          setTempImageSrc(imageUrl);
-          setShowCropper(true);
-        }
-      }
-    }
-  };
 
-  const handleCropComplete = async (croppedImageBlob: Blob) => {
-    console.log("handleCropComplete called with blob size:", croppedImageBlob.size);
+  const handleImageUpdate = async (croppedImageBlob: Blob) => {
+    console.log("handleImageUpdate called with blob size:", croppedImageBlob.size);
     setIsUploadingImage(true);
-    setShowCropper(false);
     
     try {
       // Get upload URL for cropped image
@@ -218,6 +145,7 @@ export default function ProfilePage() {
       }
       
       const { uploadURL } = await uploadResponse.json();
+      console.log("Got upload URL for cropped image:", uploadURL);
       
       // Upload cropped image  
       const uploadResult = await fetch(uploadURL, {
@@ -229,75 +157,44 @@ export default function ProfilePage() {
         throw new Error("Falha no upload da imagem");
       }
       
-      console.log("Sending image URL to backend:", uploadURL);
+      console.log("Cropped image uploaded successfully");
       
-      // Update profile picture in backend
-      const response = await fetch("/api/profile-picture", {
+      // Update profile with new image URL
+      const objectPath = uploadURL.split('?')[0];
+      console.log("Setting profile picture to:", objectPath);
+      
+      const updateResponse = await fetch("/api/user/profile-picture", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ imageUrl: uploadURL })
+        body: JSON.stringify({ profilePictureUrl: objectPath })
       });
-
-      if (!response.ok) {
-        throw new Error("Falha ao atualizar foto de perfil");
+      
+      if (!updateResponse.ok) {
+        throw new Error("Falha ao atualizar foto do perfil");
       }
-
-      const updatedUser = await response.json();
-      console.log("Backend response:", updatedUser);
       
-      // Generate unique URL with timestamp for cache busting
-      const timestamp = Date.now();
-      const normalizedUrl = updatedUser.profilePictureUrl;
-      const newImageUrl = `${normalizedUrl}?v=${timestamp}`;
+      console.log("Profile picture updated successfully");
       
-      console.log("New image URL with cache buster:", newImageUrl);
-      
-      // Update preview immediately
-      setPreviewImage(newImageUrl);
+      // Update preview and invalidate cache
+      setPreviewImage(objectPath);
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       
       toast({
-        title: "Foto de perfil atualizada",
+        title: "Foto atualizada!",
         description: "Sua foto de perfil foi atualizada com sucesso."
       });
-      
-      // Force update user data in cache with cache-busted URL
-      queryClient.setQueryData(["/api/user"], (oldData: any) => {
-        console.log("Updating cache data, old:", oldData);
-        if (oldData) {
-          const newData = {
-            ...oldData,
-            profilePictureUrl: newImageUrl
-          };
-          console.log("New cache data:", newData);
-          return newData;
-        }
-        return oldData;
-      });
-      
-      // Also invalidate to ensure fresh data on next fetch
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
     } catch (error) {
+      console.error("Error uploading image:", error);
       toast({
-        title: "Erro ao atualizar foto",
-        description: "Ocorreu um erro ao salvar a foto de perfil.",
+        title: "Erro no upload",
+        description: "Não foi possível atualizar a foto de perfil.",
         variant: "destructive"
       });
-      // Revert preview on error
-      setPreviewImage(user?.profilePictureUrl || "");
     } finally {
       setIsUploadingImage(false);
     }
-  };
-
-  const handleCropCancel = () => {
-    setShowCropper(false);
-    // Clean up blob URL if it exists
-    if (tempImageSrc && tempImageSrc.startsWith('blob:')) {
-      URL.revokeObjectURL(tempImageSrc);
-    }
-    setTempImageSrc("");
   };
 
   if (isLoading) {
@@ -354,30 +251,11 @@ export default function ProfilePage() {
                 </Avatar>
               </div>
 
-              <div className="space-y-2">
-                <ObjectUploader
-                  maxNumberOfFiles={1}
-                  maxFileSize={5242880} // 5MB for better quality before cropping
-                  onGetUploadParameters={handleGetUploadParameters}
-                  onComplete={handleUploadComplete}
-                  buttonClassName="w-full"
-                >
-                  <div className="flex items-center justify-center">
-                    {isUploadingImage ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Camera className="w-4 h-4 mr-2" />
-                    )}
-                    {isUploadingImage ? "Processando..." : "Alterar Foto"}
-                  </div>
-                </ObjectUploader>
-
-                <p className="text-xs text-gray-500">
-                  JPG, PNG ou WebP. Máximo 5MB.
-                  <br />
-                  Você poderá ajustar o enquadramento após o upload.
-                </p>
-              </div>
+              <ProfileImageUploader
+                currentImageUrl={previewImage || user?.profilePictureUrl}
+                onImageUpdate={handleImageUpdate}
+                isUploading={isUploadingImage}
+              />
             </CardContent>
           </Card>
 
@@ -473,13 +351,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Image Cropper Modal */}
-      <ImageCropper
-        imageSrc={tempImageSrc}
-        isOpen={showCropper}
-        onClose={handleCropCancel}
-        onCropComplete={handleCropComplete}
-      />
+
     </div>
   );
 }
