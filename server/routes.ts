@@ -586,6 +586,71 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Object storage endpoints for profile pictures
+  app.get("/objects/:objectPath(*)", async (req, res) => {
+    try {
+      const ObjectStorageService = (await import("./objectStorage")).ObjectStorageService;
+      const objectStorageService = new ObjectStorageService();
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      const { ObjectNotFoundError } = await import("./objectStorage");
+      console.error("Error checking object access:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  app.post("/api/objects/upload", requireAuth, async (req, res) => {
+    try {
+      const ObjectStorageService = (await import("./objectStorage")).ObjectStorageService;
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ message: "Falha ao gerar URL de upload" });
+    }
+  });
+
+  app.put("/api/profile-picture", requireAuth, async (req, res) => {
+    try {
+      const { imageUrl } = req.body;
+      if (!imageUrl) {
+        return res.status(400).json({ message: "URL da imagem é obrigatória" });
+      }
+
+      const ObjectStorageService = (await import("./objectStorage")).ObjectStorageService;
+      const objectStorageService = new ObjectStorageService();
+      
+      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        imageUrl,
+        {
+          owner: req.user.id.toString(),
+          visibility: "public"
+        }
+      );
+
+      // Update user profile picture in database
+      const updatedUser = await storage.updateUser(req.user.id, {
+        profilePictureUrl: objectPath
+      });
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      // Remove password from response
+      const { password, ...userResponse } = updatedUser;
+      res.json(userResponse);
+    } catch (error) {
+      console.error("Error updating profile picture:", error);
+      res.status(500).json({ message: "Falha ao atualizar foto de perfil" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

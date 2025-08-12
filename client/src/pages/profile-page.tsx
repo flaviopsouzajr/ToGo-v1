@@ -3,12 +3,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import type { UploadResult } from "@uppy/core";
 import { Navigation } from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ObjectUploader } from "@/components/ObjectUploader";
 import { User, Camera, Mail, Tag, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, getQueryFn } from "@/lib/queryClient";
@@ -16,8 +18,7 @@ import type { User as UserType } from "@shared/schema";
 
 const profileUpdateSchema = z.object({
   name: z.string().optional(),
-  email: z.string().email("Formato de email inválido").optional().or(z.literal("")),
-  profilePictureUrl: z.string().url("URL de imagem inválida").optional().or(z.literal(""))
+  email: z.string().email("Formato de email inválido").optional().or(z.literal(""))
 });
 
 type ProfileUpdateData = z.infer<typeof profileUpdateSchema>;
@@ -26,6 +27,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string>("");
 
   // Fetch current user data
   const { data: user, isLoading } = useQuery<UserType>({
@@ -37,8 +39,7 @@ export default function ProfilePage() {
     resolver: zodResolver(profileUpdateSchema),
     defaultValues: {
       name: user?.name || "",
-      email: user?.email || "",
-      profilePictureUrl: user?.profilePictureUrl || ""
+      email: user?.email || ""
     }
   });
 
@@ -47,9 +48,9 @@ export default function ProfilePage() {
     if (user) {
       form.reset({
         name: user.name || "",
-        email: user.email || "",
-        profilePictureUrl: user.profilePictureUrl || ""
+        email: user.email || ""
       });
+      setPreviewImage(user.profilePictureUrl || "");
     }
   }, [user, form]);
 
@@ -76,6 +77,29 @@ export default function ProfilePage() {
     }
   });
 
+  const updateProfilePictureMutation = useMutation({
+    mutationFn: (imageUrl: string) => 
+      apiRequest("/api/profile-picture", {
+        method: "PUT",
+        body: JSON.stringify({ imageUrl })
+      }),
+    onSuccess: () => {
+      toast({
+        title: "Foto de perfil atualizada",
+        description: "Sua foto de perfil foi atualizada com sucesso."
+      });
+      // Invalidate user query to refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao atualizar foto",
+        description: error.message || "Ocorreu um erro inesperado.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const onSubmit = (data: ProfileUpdateData) => {
     // Remove empty strings to avoid updating with empty values
     const cleanData = Object.fromEntries(
@@ -84,49 +108,37 @@ export default function ProfilePage() {
     updateProfileMutation.mutate(cleanData);
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      toast({
-        title: "Arquivo inválido",
-        description: "Apenas arquivos JPG, PNG e WebP são permitidos.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "Arquivo muito grande",
-        description: "A imagem deve ter no máximo 5MB.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsUploadingImage(true);
-
+  const handleGetUploadParameters = async () => {
     try {
-      // For now, we'll use a simple file upload to a public service like Cloudinary or similar
-      // In a real app, you'd upload to your file storage service
-      toast({
-        title: "Funcionalidade em desenvolvimento",
-        description: "Por enquanto, cole o URL de uma imagem hospedada online no campo abaixo.",
-        variant: "default"
+      const response = await apiRequest("/api/objects/upload", {
+        method: "POST"
       });
+      return {
+        method: "PUT" as const,
+        url: response.uploadURL
+      };
     } catch (error) {
       toast({
-        title: "Erro no upload",
-        description: "Não foi possível fazer o upload da imagem.",
+        title: "Erro ao gerar URL de upload",
+        description: "Não foi possível gerar a URL para upload.",
         variant: "destructive"
       });
-    } finally {
-      setIsUploadingImage(false);
+      throw error;
+    }
+  };
+
+  const handleUploadComplete = async (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+    if (result.successful.length > 0) {
+      const uploadedFile = result.successful[0];
+      const imageUrl = uploadedFile.uploadURL;
+      
+      if (imageUrl) {
+        // Update preview immediately
+        setPreviewImage(imageUrl);
+        
+        // Update profile picture in backend
+        updateProfilePictureMutation.mutate(imageUrl);
+      }
     }
   };
 
@@ -174,7 +186,7 @@ export default function ProfilePage() {
               <div className="flex justify-center">
                 <Avatar className="w-32 h-32">
                   <AvatarImage 
-                    src={form.watch("profilePictureUrl") || user?.profilePictureUrl || ""} 
+                    src={previewImage || user?.profilePictureUrl || ""} 
                     alt={user?.name || user?.username || "Perfil"} 
                   />
                   <AvatarFallback className="text-2xl bg-togo-primary text-white">
@@ -184,31 +196,19 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => document.getElementById('profile-image-upload')?.click()}
-                  disabled={isUploadingImage}
-                  className="w-full"
+                <ObjectUploader
+                  maxNumberOfFiles={1}
+                  maxFileSize={2097152} // 2MB
+                  onGetUploadParameters={handleGetUploadParameters}
+                  onComplete={handleUploadComplete}
+                  buttonClassName="w-full"
                 >
-                  {isUploadingImage ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Camera className="w-4 h-4 mr-2" />
-                  )}
-                  {isUploadingImage ? "Enviando..." : "Alterar Foto"}
-                </Button>
-
-                <input
-                  id="profile-image-upload"
-                  type="file"
-                  accept="image/jpeg,image/jpg,image/png,image/webp"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
+                  <Camera className="w-4 h-4 mr-2" />
+                  Alterar Foto
+                </ObjectUploader>
 
                 <p className="text-xs text-gray-500">
-                  JPG, PNG ou WebP. Máximo 5MB.
+                  JPG, PNG ou WebP. Máximo 2MB.
                 </p>
               </div>
             </CardContent>
@@ -286,31 +286,7 @@ export default function ProfilePage() {
                     )}
                   />
 
-                  {/* Profile Picture URL */}
-                  <FormField
-                    control={form.control}
-                    name="profilePictureUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex items-center">
-                          <Camera className="w-4 h-4 mr-2" />
-                          URL da Foto de Perfil
-                        </FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="url"
-                            placeholder="https://exemplo.com/minha-foto.jpg"
-                            {...field} 
-                            value={field.value || ""}
-                          />
-                        </FormControl>
-                        <p className="text-xs text-gray-500">
-                          Cole o link de uma imagem hospedada online
-                        </p>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
 
                   {/* Submit Button */}
                   <Button 
