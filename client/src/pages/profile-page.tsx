@@ -162,11 +162,24 @@ export default function ProfilePage() {
       const uploadedFile = result.successful[0];
       const imageUrl = uploadedFile.uploadURL;
       
-      console.log("Setting temp image src:", imageUrl);
+      console.log("Original imageUrl:", imageUrl);
+      
       if (imageUrl && typeof imageUrl === 'string') {
-        // Show cropper with uploaded image
-        setTempImageSrc(imageUrl);
-        setShowCropper(true);
+        // Convert the storage URL to a blob URL for cropper compatibility
+        try {
+          const response = await fetch(imageUrl);
+          const blob = await response.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          
+          console.log("Setting temp image src with blob URL:", blobUrl);
+          setTempImageSrc(blobUrl);
+          setShowCropper(true);
+        } catch (error) {
+          console.error("Error converting image to blob:", error);
+          // Fallback to original URL
+          setTempImageSrc(imageUrl);
+          setShowCropper(true);
+        }
       }
     }
   };
@@ -265,6 +278,10 @@ export default function ProfilePage() {
 
   const handleCropCancel = () => {
     setShowCropper(false);
+    // Clean up blob URL if it exists
+    if (tempImageSrc && tempImageSrc.startsWith('blob:')) {
+      URL.revokeObjectURL(tempImageSrc);
+    }
     setTempImageSrc("");
   };
 
