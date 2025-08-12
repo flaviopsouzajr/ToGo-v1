@@ -53,6 +53,7 @@ export default function ProfilePage() {
         name: user.name || "",
         email: user.email || ""
       });
+      console.log("Setting preview image from user data:", user.profilePictureUrl);
       setPreviewImage(user.profilePictureUrl || "");
     }
   }, [user, form]);
@@ -197,6 +198,8 @@ export default function ProfilePage() {
         throw new Error("Falha no upload da imagem");
       }
       
+      console.log("Sending image URL to backend:", uploadURL);
+      
       // Update profile picture in backend
       const response = await fetch("/api/profile-picture", {
         method: "PUT",
@@ -211,11 +214,14 @@ export default function ProfilePage() {
       }
 
       const updatedUser = await response.json();
+      console.log("Backend response:", updatedUser);
       
       // Generate unique URL with timestamp for cache busting
       const timestamp = Date.now();
       const normalizedUrl = updatedUser.profilePictureUrl;
       const newImageUrl = `${normalizedUrl}?v=${timestamp}`;
+      
+      console.log("New image URL with cache buster:", newImageUrl);
       
       // Update preview immediately
       setPreviewImage(newImageUrl);
@@ -227,11 +233,14 @@ export default function ProfilePage() {
       
       // Force update user data in cache with cache-busted URL
       queryClient.setQueryData(["/api/user"], (oldData: any) => {
+        console.log("Updating cache data, old:", oldData);
         if (oldData) {
-          return {
+          const newData = {
             ...oldData,
             profilePictureUrl: newImageUrl
           };
+          console.log("New cache data:", newData);
+          return newData;
         }
         return oldData;
       });
