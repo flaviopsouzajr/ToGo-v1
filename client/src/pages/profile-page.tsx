@@ -51,7 +51,12 @@ export default function ProfilePage() {
         email: user.email || ""
       });
       console.log("Setting preview image from user data:", user.profilePictureUrl);
-      setPreviewImage(user.profilePictureUrl || "");
+      // Force image refresh by adding timestamp
+      if (user.profilePictureUrl) {
+        setPreviewImage(`${user.profilePictureUrl}?v=${Date.now()}`);
+      } else {
+        setPreviewImage("");
+      }
     }
   }, [user, form]);
 
@@ -177,8 +182,9 @@ export default function ProfilePage() {
       
       console.log("Profile picture updated successfully");
       
-      // Update preview and invalidate cache
-      setPreviewImage(objectPath);
+      // Update preview with timestamp to force reload and invalidate cache
+      const newImageUrl = `${objectPath}?v=${Date.now()}`;
+      setPreviewImage(newImageUrl);
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       
       toast({
@@ -241,9 +247,11 @@ export default function ProfilePage() {
               <div className="flex justify-center">
                 <Avatar className="w-32 h-32">
                   <AvatarImage 
-                    src={previewImage ? `${previewImage}?t=${Date.now()}` : user?.profilePictureUrl ? `${user.profilePictureUrl}?t=${Date.now()}` : ""} 
+                    src={previewImage || ""} 
                     alt={user?.name || user?.username || "Perfil"}
-                    key={`${previewImage || user?.profilePictureUrl}-${Date.now()}`} // Force re-render when URL changes
+                    key={previewImage} // Force re-render when URL changes
+                    onError={() => console.log("Image failed to load:", previewImage)}
+                    onLoad={() => console.log("Image loaded successfully:", previewImage)}
                   />
                   <AvatarFallback className="text-2xl bg-togo-primary text-white">
                     {(user?.name || user?.username || "?").charAt(0).toUpperCase()}
