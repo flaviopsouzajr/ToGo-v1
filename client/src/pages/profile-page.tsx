@@ -96,7 +96,7 @@ export default function ProfilePage() {
 
   const updateProfilePictureMutation = useMutation({
     mutationFn: (imageUrl: string) => 
-      apiRequest("/api/user/profile-picture", {
+      apiRequest("/api/profile-picture", {
         method: "PUT",
         body: JSON.stringify({ imageUrl })
       }),
@@ -168,12 +168,12 @@ export default function ProfilePage() {
       const objectPath = uploadURL.split('?')[0];
       console.log("Setting profile picture to:", objectPath);
       
-      const updateResponse = await fetch("/api/user/profile-picture", {
+      const updateResponse = await fetch("/api/profile-picture", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ profilePictureUrl: objectPath })
+        body: JSON.stringify({ imageUrl: objectPath })
       });
       
       if (!updateResponse.ok) {
