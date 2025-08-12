@@ -58,11 +58,22 @@ export default function ProfilePage() {
   }, [user, form]);
 
   const updateProfileMutation = useMutation({
-    mutationFn: (data: ProfileUpdateData) => 
-      apiRequest("/api/user/profile", {
+    mutationFn: async (data: ProfileUpdateData) => {
+      const response = await fetch("/api/user/profile", {
         method: "PUT",
-        body: JSON.stringify(data)
-      }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Erro desconhecido" }));
+        throw new Error(errorData.message || "Falha ao atualizar perfil");
+      }
+      
+      return response.json();
+    },
     onSuccess: () => {
       toast({
         title: "Perfil atualizado",
@@ -105,9 +116,14 @@ export default function ProfilePage() {
 
   const onSubmit = (data: ProfileUpdateData) => {
     // Remove empty strings to avoid updating with empty values
-    const cleanData = Object.fromEntries(
-      Object.entries(data).filter(([_, value]) => value !== "")
-    );
+    const cleanData: Partial<ProfileUpdateData> = {};
+    if (data.name && data.name.trim() !== "") {
+      cleanData.name = data.name.trim();
+    }
+    if (data.email && data.email.trim() !== "") {
+      cleanData.email = data.email.trim();
+    }
+    
     updateProfileMutation.mutate(cleanData);
   };
 
@@ -196,9 +212,12 @@ export default function ProfilePage() {
 
       const updatedUser = await response.json();
       
-      // Update preview with the new image URL from backend (with cache buster)
+      // Generate unique URL with timestamp for cache busting
       const timestamp = Date.now();
-      const newImageUrl = `${updatedUser.profilePictureUrl}?v=${timestamp}`;
+      const normalizedUrl = updatedUser.profilePictureUrl;
+      const newImageUrl = `${normalizedUrl}?v=${timestamp}`;
+      
+      // Update preview immediately
       setPreviewImage(newImageUrl);
       
       toast({
@@ -206,11 +225,16 @@ export default function ProfilePage() {
         description: "Sua foto de perfil foi atualizada com sucesso."
       });
       
-      // Force refresh user data with updated profile picture
-      queryClient.setQueryData(["/api/user"], (oldData: any) => ({
-        ...oldData,
-        profilePictureUrl: `${updatedUser.profilePictureUrl}?v=${timestamp}`
-      }));
+      // Force update user data in cache with cache-busted URL
+      queryClient.setQueryData(["/api/user"], (oldData: any) => {
+        if (oldData) {
+          return {
+            ...oldData,
+            profilePictureUrl: newImageUrl
+          };
+        }
+        return oldData;
+      });
       
       // Also invalidate to ensure fresh data on next fetch
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });

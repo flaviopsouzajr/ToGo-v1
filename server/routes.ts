@@ -560,18 +560,19 @@ export function registerRoutes(app: Express): Server {
   // Profile update endpoint
   app.put("/api/user/profile", requireAuth, async (req, res) => {
     try {
-      const { name, email, profilePictureUrl } = req.body;
+      const { name, email } = req.body;
       
       // Validate email format if provided
       if (email && !/\S+@\S+\.\S+/.test(email)) {
         return res.status(400).json({ message: "Formato de email inválido" });
       }
 
-      const updatedUser = await storage.updateUser(req.user.id, {
-        name,
-        email,
-        profilePictureUrl
-      });
+      // Only update name and email, not profile picture (separate endpoint)
+      const updateData: Partial<{ name: string; email: string }> = {};
+      if (name !== undefined) updateData.name = name;
+      if (email !== undefined) updateData.email = email;
+
+      const updatedUser = await storage.updateUser(req.user!.id, updateData);
 
       if (!updatedUser) {
         return res.status(404).json({ message: "Usuário não encontrado" });
@@ -631,7 +632,7 @@ export function registerRoutes(app: Express): Server {
         const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
           imageUrl,
           {
-            owner: req.user.id.toString(),
+            owner: req.user!.id.toString(),
             visibility: "public"
           }
         );
@@ -639,7 +640,7 @@ export function registerRoutes(app: Express): Server {
         console.log("Generated object path:", objectPath);
 
         // Update user profile picture in database
-        const updatedUser = await storage.updateUser(req.user.id, {
+        const updatedUser = await storage.updateUser(req.user!.id, {
           profilePictureUrl: objectPath
         });
 
@@ -647,18 +648,16 @@ export function registerRoutes(app: Express): Server {
           return res.status(404).json({ message: "Usuário não encontrado" });
         }
 
-        // Add timestamp for cache busting and remove password
-        const timestamp = Date.now();
+        // Remove password from response and include the normalized path
         const { password, ...userResponse } = updatedUser;
         res.json({
           ...userResponse,
-          profilePictureUrl: objectPath,
-          timestamp // Add timestamp for frontend cache management
+          profilePictureUrl: objectPath
         });
       } catch (objectError) {
         console.error("Object storage error:", objectError);
         // Fallback: save the URL directly if object storage fails
-        const updatedUser = await storage.updateUser(req.user.id, {
+        const updatedUser = await storage.updateUser(req.user!.id, {
           profilePictureUrl: imageUrl
         });
 
@@ -666,13 +665,11 @@ export function registerRoutes(app: Express): Server {
           return res.status(404).json({ message: "Usuário não encontrado" });
         }
 
-        // Add timestamp for cache busting and remove password (fallback case)
-        const timestamp = Date.now();
+        // Remove password from response (fallback case)
         const { password, ...userResponse } = updatedUser;
         res.json({
           ...userResponse,
-          profilePictureUrl: imageUrl,
-          timestamp // Add timestamp for frontend cache management
+          profilePictureUrl: imageUrl
         });
       }
     } catch (error) {

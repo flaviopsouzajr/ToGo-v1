@@ -110,7 +110,7 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUser(id: number, data: Partial<InsertUser>): Promise<User | undefined> {
+  async updateUser(id: number, data: Partial<InsertUser & { name?: string; profilePictureUrl?: string }>): Promise<User | undefined> {
     const [updated] = await db
       .update(users)
       .set(data)
