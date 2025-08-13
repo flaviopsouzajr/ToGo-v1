@@ -28,22 +28,29 @@ function getActivityText(activity: ActivityWithDetails): string {
 function ActivityCard({ activity }: { activity: ActivityWithDetails }) {
   const friendName = activity.user.name || activity.user.username;
   const friendInitials = friendName.substring(0, 2).toUpperCase();
+  const friendProfileUrl = `/friend-profile/${activity.user.id}`;
   
   return (
     <Card className="w-full mb-4">
       <CardHeader className="pb-3">
         <div className="flex items-center space-x-3">
-          <Avatar className="h-10 w-10">
-            {activity.user.profilePictureUrl && (
-              <AvatarImage src={activity.user.profilePictureUrl} alt={friendName} />
-            )}
-            <AvatarFallback className="bg-green-100 text-green-700">
-              {friendInitials}
-            </AvatarFallback>
-          </Avatar>
+          <Link href={friendProfileUrl}>
+            <Avatar className="h-10 w-10 cursor-pointer hover:opacity-80 transition-opacity">
+              {activity.user.profilePictureUrl && (
+                <AvatarImage src={activity.user.profilePictureUrl} alt={friendName} />
+              )}
+              <AvatarFallback className="bg-green-100 text-green-700">
+                {friendInitials}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
           <div className="flex-1">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">{friendName}</p>
+              <Link href={friendProfileUrl}>
+                <p className="text-sm font-medium cursor-pointer hover:text-togo-primary transition-colors">
+                  {friendName}
+                </p>
+              </Link>
               <p className="text-xs text-muted-foreground">
                 {formatDistanceToNow(new Date(activity.createdAt), { 
                   addSuffix: true, 
