@@ -247,6 +247,7 @@ export class DatabaseStorage implements IStorage {
         instagramProfile: places.instagramProfile,
         hasRodizio: places.hasRodizio,
         petFriendly: places.petFriendly,
+        recommendToFriends: places.recommendToFriends,
         mainImage: places.mainImage,
         itineraryFile: places.itineraryFile,
         rating: places.rating,

@@ -268,19 +268,13 @@ export function registerRoutes(app: Express): Server {
       }
       
       // Check if recommendToFriends was added or removed and create activity
-      console.log("Checking recommendToFriends changes:");
-      console.log("validData.recommendToFriends:", validData.recommendToFriends);
-      console.log("oldPlace?.recommendToFriends:", oldPlace?.recommendToFriends);
-      
       if (validData.recommendToFriends && !oldPlace?.recommendToFriends) {
-        console.log("Creating nova_indicacao activity");
         await storage.createActivity({
           userId: req.user.id,
           type: 'nova_indicacao',
           placeId: place.id
         });
       } else if (!validData.recommendToFriends && oldPlace?.recommendToFriends) {
-        console.log("Creating remocao_indicacao activity");
         await storage.createActivity({
           userId: req.user.id,
           type: 'remocao_indicacao',
