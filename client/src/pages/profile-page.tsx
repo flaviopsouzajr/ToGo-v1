@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ProfileImageUploader } from "@/components/ProfileImageUploader";
-import { User, Mail, Tag, Loader2, Lock } from "lucide-react";
+import { User, Mail, Tag, Loader2, Lock, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, getQueryFn } from "@/lib/queryClient";
 import type { User as UserType } from "@shared/schema";
@@ -38,6 +38,11 @@ export default function ProfilePage() {
   const queryClient = useQueryClient();
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [previewImage, setPreviewImage] = useState<string>("");
+  
+  // States for password visibility
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Fetch current user data
   const { data: user, isLoading } = useQuery<UserType>({
@@ -430,11 +435,25 @@ export default function ProfilePage() {
                           Senha Atual
                         </FormLabel>
                         <FormControl>
-                          <Input 
-                            type="password"
-                            placeholder="Digite sua senha atual"
-                            {...field} 
-                          />
+                          <div className="relative">
+                            <Input 
+                              type={showCurrentPassword ? "text" : "password"}
+                              placeholder="Digite sua senha atual"
+                              {...field} 
+                              className="pr-10"
+                            />
+                            <button
+                              type="button"
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                            >
+                              {showCurrentPassword ? (
+                                <EyeOff className="w-4 h-4" />
+                              ) : (
+                                <Eye className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -452,11 +471,25 @@ export default function ProfilePage() {
                           Nova Senha
                         </FormLabel>
                         <FormControl>
-                          <Input 
-                            type="password"
-                            placeholder="Digite sua nova senha (mín. 8 caracteres)"
-                            {...field} 
-                          />
+                          <div className="relative">
+                            <Input 
+                              type={showNewPassword ? "text" : "password"}
+                              placeholder="Digite sua nova senha (mín. 8 caracteres)"
+                              {...field} 
+                              className="pr-10"
+                            />
+                            <button
+                              type="button"
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                              onClick={() => setShowNewPassword(!showNewPassword)}
+                            >
+                              {showNewPassword ? (
+                                <EyeOff className="w-4 h-4" />
+                              ) : (
+                                <Eye className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -474,11 +507,25 @@ export default function ProfilePage() {
                           Confirmar Nova Senha
                         </FormLabel>
                         <FormControl>
-                          <Input 
-                            type="password"
-                            placeholder="Confirme sua nova senha"
-                            {...field} 
-                          />
+                          <div className="relative">
+                            <Input 
+                              type={showConfirmPassword ? "text" : "password"}
+                              placeholder="Confirme sua nova senha"
+                              {...field} 
+                              className="pr-10"
+                            />
+                            <button
+                              type="button"
+                              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            >
+                              {showConfirmPassword ? (
+                                <EyeOff className="w-4 h-4" />
+                              ) : (
+                                <Eye className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
