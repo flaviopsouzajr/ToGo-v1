@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { Link } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -258,14 +258,8 @@ export default function FeedPage() {
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       <div className="container mx-auto p-4">
-        <div className="flex items-center mb-6">
-          <Link href="/">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
-            </Button>
-          </Link>
-          <h1 className="text-2xl font-bold ml-4">Feed de Atividades</h1>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">Feed de Atividades</h1>
         </div>
 
         <div className="max-w-2xl mx-auto">
