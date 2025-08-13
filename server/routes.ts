@@ -706,10 +706,12 @@ export function registerRoutes(app: Express): Server {
   // Change Password endpoint
   app.put("/api/user/change-password", requireAuth, async (req, res) => {
     try {
+      console.log("Change password request received. Body:", req.body);
       const { currentPassword, newPassword } = req.body;
       
       // Validation
       if (!currentPassword || !newPassword) {
+        console.log("Missing fields. currentPassword:", !!currentPassword, "newPassword:", !!newPassword);
         return res.status(400).json({ message: "Senha atual e nova senha são obrigatórias" });
       }
       
@@ -718,7 +720,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Get current user from database
-      const currentUser = await storage.getUserById(req.user!.id);
+      const currentUser = await storage.getUser(req.user!.id);
       if (!currentUser) {
         return res.status(404).json({ message: "Usuário não encontrado" });
       }

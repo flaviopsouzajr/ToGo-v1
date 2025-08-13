@@ -42,7 +42,7 @@ export default function ProfilePage() {
   // Fetch current user data
   const { data: user, isLoading } = useQuery<UserType>({
     queryKey: ["/api/user"],
-    queryFn: getQueryFn({ on401: "redirect" })
+    queryFn: getQueryFn({ on401: () => window.location.href = "/auth" })
   });
 
   const form = useForm<ProfileUpdateData>({
