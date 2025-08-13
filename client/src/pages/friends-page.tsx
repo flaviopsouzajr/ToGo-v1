@@ -64,6 +64,7 @@ export function FriendsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/friends"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/feed"] });
       toast({
         title: "Amigo removido",
         description: "Você não está mais seguindo este usuário.",
