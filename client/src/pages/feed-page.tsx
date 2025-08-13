@@ -16,6 +16,8 @@ function getActivityText(activity: ActivityWithDetails): string {
   switch (activity.type) {
     case 'nova_indicacao':
       return `${friendName} adicionou um novo lugar em sua lista de indicações: ${activity.place?.name || 'Local removido'}`;
+    case 'remocao_indicacao':
+      return `${friendName} removeu o lugar ${activity.place?.name || 'Local removido'} da sua lista de indicações`;
     case 'nova_avaliacao':
       return `${friendName} avaliou ${activity.place?.name || 'Local removido'} com nota ${activity.newRating}`;
     case 'alteracao_avaliacao':

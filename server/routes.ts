@@ -267,11 +267,17 @@ export function registerRoutes(app: Express): Server {
         }
       }
       
-      // Check if recommendToFriends was added and create activity
+      // Check if recommendToFriends was added or removed and create activity
       if (validData.recommendToFriends && !oldPlace?.recommendToFriends) {
         await storage.createActivity({
           userId: req.user.id,
           type: 'nova_indicacao',
+          placeId: place.id
+        });
+      } else if (!validData.recommendToFriends && oldPlace?.recommendToFriends) {
+        await storage.createActivity({
+          userId: req.user.id,
+          type: 'remocao_indicacao',
           placeId: place.id
         });
       }
