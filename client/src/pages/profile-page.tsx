@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ProfileImageUploader } from "@/components/ProfileImageUploader";
-import { User, Mail, Tag, Loader2 } from "lucide-react";
+import { User, Mail, Tag, Loader2, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, getQueryFn } from "@/lib/queryClient";
 import type { User as UserType } from "@shared/schema";
@@ -21,7 +21,17 @@ const profileUpdateSchema = z.object({
   email: z.string().email("Formato de email inválido").optional().or(z.literal(""))
 });
 
+const passwordChangeSchema = z.object({
+  currentPassword: z.string().min(1, "Senha atual é obrigatória"),
+  newPassword: z.string().min(8, "Nova senha deve ter no mínimo 8 caracteres"),
+  confirmPassword: z.string().min(1, "Confirmação da senha é obrigatória")
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "A confirmação da senha deve ser igual à nova senha",
+  path: ["confirmPassword"]
+});
+
 type ProfileUpdateData = z.infer<typeof profileUpdateSchema>;
+type PasswordChangeData = z.infer<typeof passwordChangeSchema>;
 
 export default function ProfilePage() {
   const { toast } = useToast();
@@ -40,6 +50,15 @@ export default function ProfilePage() {
     defaultValues: {
       name: user?.name || "",
       email: user?.email || ""
+    }
+  });
+
+  const passwordForm = useForm<PasswordChangeData>({
+    resolver: zodResolver(passwordChangeSchema),
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: ""
     }
   });
 
@@ -128,6 +147,35 @@ export default function ProfilePage() {
     }
     
     updateProfileMutation.mutate(cleanData);
+  };
+
+  const changePasswordMutation = useMutation({
+    mutationFn: (data: PasswordChangeData) => 
+      apiRequest("/api/user/change-password", {
+        method: "PUT",
+        body: JSON.stringify({
+          currentPassword: data.currentPassword,
+          newPassword: data.newPassword
+        })
+      }),
+    onSuccess: () => {
+      passwordForm.reset();
+      toast({
+        title: "Senha alterada com sucesso!",
+        description: "Sua senha foi atualizada.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao alterar senha.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handlePasswordChange = (data: PasswordChangeData) => {
+    changePasswordMutation.mutate(data);
   };
 
 
@@ -351,6 +399,102 @@ export default function ProfilePage() {
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     ) : null}
                     {updateProfileMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+
+          {/* Change Password Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Lock className="w-5 h-5 mr-2 text-togo-primary" />
+                Alterar Senha
+              </CardTitle>
+              <CardDescription>
+                Altere sua senha de acesso ao sistema. Todos os campos são obrigatórios.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...passwordForm}>
+                <form onSubmit={passwordForm.handleSubmit(handlePasswordChange)} className="space-y-6">
+                  {/* Current Password */}
+                  <FormField
+                    control={passwordForm.control}
+                    name="currentPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center">
+                          <Lock className="w-4 h-4 mr-2" />
+                          Senha Atual
+                        </FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="password"
+                            placeholder="Digite sua senha atual"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* New Password */}
+                  <FormField
+                    control={passwordForm.control}
+                    name="newPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center">
+                          <Lock className="w-4 h-4 mr-2" />
+                          Nova Senha
+                        </FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="password"
+                            placeholder="Digite sua nova senha (mín. 8 caracteres)"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Confirm New Password */}
+                  <FormField
+                    control={passwordForm.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center">
+                          <Lock className="w-4 h-4 mr-2" />
+                          Confirmar Nova Senha
+                        </FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="password"
+                            placeholder="Confirme sua nova senha"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Submit Button */}
+                  <Button 
+                    type="submit" 
+                    className="w-full"
+                    disabled={changePasswordMutation.isPending}
+                  >
+                    {changePasswordMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : null}
+                    {changePasswordMutation.isPending ? "Salvando..." : "Salvar Nova Senha"}
                   </Button>
                 </form>
               </Form>

@@ -703,6 +703,61 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Change Password endpoint
+  app.put("/api/user/change-password", requireAuth, async (req, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      
+      // Validation
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: "Senha atual e nova senha são obrigatórias" });
+      }
+      
+      if (newPassword.length < 8) {
+        return res.status(400).json({ message: "Nova senha deve ter no mínimo 8 caracteres" });
+      }
+
+      // Get current user from database
+      const currentUser = await storage.getUserById(req.user!.id);
+      if (!currentUser) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+
+      // Verify current password using auth.ts functions
+      const { scrypt, timingSafeEqual, randomBytes } = await import("crypto");
+      const { promisify } = await import("util");
+      const scryptAsync = promisify(scrypt);
+
+      // Use the same format as in auth.ts (hash.salt, not salt:hash)
+      const [hashed, salt] = currentUser.password.split(".");
+      const hashedBuf = Buffer.from(hashed, "hex");
+      const suppliedBuf = (await scryptAsync(currentPassword, salt, 64)) as Buffer;
+
+      if (!timingSafeEqual(hashedBuf, suppliedBuf)) {
+        return res.status(400).json({ message: "Senha atual incorreta" });
+      }
+
+      // Hash new password using the same format as auth.ts
+      const newSalt = randomBytes(16).toString("hex");
+      const newPasswordBuf = (await scryptAsync(newPassword, newSalt, 64)) as Buffer;
+      const hashedNewPassword = `${newPasswordBuf.toString("hex")}.${newSalt}`;
+
+      // Update password in database
+      const updatedUser = await storage.updateUser(req.user!.id, {
+        password: hashedNewPassword
+      });
+
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Falha ao atualizar senha" });
+      }
+
+      res.json({ message: "Senha alterada com sucesso" });
+    } catch (error) {
+      console.error("Error changing password:", error);
+      res.status(500).json({ message: "Falha ao alterar senha" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
