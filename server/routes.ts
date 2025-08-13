@@ -264,6 +264,15 @@ export function registerRoutes(app: Express): Server {
         });
       }
       
+      // Check if recommendToFriends was added and create activity
+      if (validData.recommendToFriends && !oldPlace?.recommendToFriends) {
+        await storage.createActivity({
+          userId: req.user.id,
+          type: 'nova_indicacao',
+          placeId: place.id
+        });
+      }
+      
       res.json(place);
     } catch (error) {
       console.error("Error updating place:", error);
