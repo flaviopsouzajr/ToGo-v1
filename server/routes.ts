@@ -245,23 +245,26 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ message: "Place not found" });
       }
       
-      // Check if rating changed and create activity
-      if (validData.rating !== undefined && oldPlace?.rating !== validData.rating.toString()) {
+      // Check if rating actually changed and create activity
+      if (validData.rating !== undefined) {
         const oldRating = oldPlace?.rating ? parseFloat(oldPlace.rating) : null;
         const newRating = validData.rating;
         
-        let activityType = 'nova_avaliacao';
-        if (oldRating !== null && oldRating > 0) {
-          activityType = 'alteracao_avaliacao';
+        // Only create activity if rating actually changed
+        if (oldRating !== newRating) {
+          let activityType = 'nova_avaliacao';
+          if (oldRating !== null && oldRating > 0) {
+            activityType = 'alteracao_avaliacao';
+          }
+          
+          await storage.createActivity({
+            userId: req.user.id,
+            type: activityType,
+            placeId: place.id,
+            oldRating: oldRating?.toString(),
+            newRating: newRating.toString()
+          });
         }
-        
-        await storage.createActivity({
-          userId: req.user.id,
-          type: activityType,
-          placeId: place.id,
-          oldRating: oldRating?.toString(),
-          newRating: newRating.toString()
-        });
       }
       
       // Check if recommendToFriends was added and create activity
