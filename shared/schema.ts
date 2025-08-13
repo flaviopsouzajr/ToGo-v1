@@ -75,6 +75,16 @@ export const friendships = pgTable("friendships", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const activities = pgTable("activities", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  type: text("type").notNull(), // 'nova_indicacao', 'nova_avaliacao', 'alteracao_avaliacao'
+  placeId: integer("place_id").references(() => places.id),
+  oldRating: decimal("old_rating", { precision: 2, scale: 1 }),
+  newRating: decimal("new_rating", { precision: 2, scale: 1 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const placesRelations = relations(places, ({ one }) => ({
   type: one(placeTypes, {
     fields: [places.typeId],
@@ -101,6 +111,17 @@ export const friendshipsRelations = relations(friendships, ({ one }) => ({
   }),
 }));
 
+export const activitiesRelations = relations(activities, ({ one }) => ({
+  user: one(users, {
+    fields: [activities.userId],
+    references: [users.id],
+  }),
+  place: one(places, {
+    fields: [activities.placeId],
+    references: [places.id],
+  }),
+}));
+
 export const placeTypesRelations = relations(placeTypes, ({ many }) => ({
   places: many(places),
 }));
@@ -108,6 +129,7 @@ export const placeTypesRelations = relations(placeTypes, ({ many }) => ({
 export const usersRelations = relations(users, ({ many }) => ({
   createdPlaces: many(places),
   carouselImages: many(carouselImages),
+  activities: many(activities),
 }));
 
 export const carouselImagesRelations = relations(carouselImages, ({ one }) => ({
@@ -193,6 +215,19 @@ export const insertFriendshipSchema = createInsertSchema(friendships).omit({
   id: true,
   createdAt: true,
 });
+
+export const insertActivitySchema = createInsertSchema(activities).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type InsertFriendship = z.infer<typeof insertFriendshipSchema>;
 export type Friendship = typeof friendships.$inferSelect;
 export type FriendWithUser = Friendship & { friend: User };
+
+export type InsertActivity = z.infer<typeof insertActivitySchema>;
+export type Activity = typeof activities.$inferSelect;
+export type ActivityWithDetails = Activity & { 
+  user: User; 
+  place?: Place & { type: PlaceType }; 
+};

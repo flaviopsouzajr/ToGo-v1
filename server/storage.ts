@@ -1,4 +1,4 @@
-import { users, places, placeTypes, carouselImages, passwordResetTokens, friendships, type User, type InsertUser, type Place, type InsertPlace, type PlaceType, type InsertPlaceType, type PlaceWithType, type CarouselImage, type InsertCarouselImage, type PasswordResetToken, type InsertPasswordResetToken, type Friendship, type InsertFriendship, type FriendWithUser } from "@shared/schema";
+import { users, places, placeTypes, carouselImages, passwordResetTokens, friendships, activities, type User, type InsertUser, type Place, type InsertPlace, type PlaceType, type InsertPlaceType, type PlaceWithType, type CarouselImage, type InsertCarouselImage, type PasswordResetToken, type InsertPasswordResetToken, type Friendship, type InsertFriendship, type FriendWithUser, type Activity, type InsertActivity, type ActivityWithDetails } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, like, gte, inArray, sql } from "drizzle-orm";
 import session from "express-session";
@@ -64,6 +64,10 @@ export interface IStorage {
   isFriend(userId: number, friendId: number): Promise<boolean>;
   getFriendRecommendations(friendId: number): Promise<PlaceWithType[]>;
   clonePlace(placeId: number, userId: number): Promise<Place>;
+
+  // Activities
+  createActivity(activity: InsertActivity): Promise<Activity>;
+  getFriendsActivities(userId: number, limit?: number, offset?: number): Promise<ActivityWithDetails[]>;
   
   sessionStore: any;
 }
@@ -562,6 +566,103 @@ export class DatabaseStorage implements IStorage {
 
     return clonedPlace;
   }
+
+  // Activity methods
+  async createActivity(activity: InsertActivity): Promise<Activity> {
+    const [newActivity] = await db
+      .insert(activities)
+      .values(activity)
+      .returning();
+    return newActivity;
+  }
+
+  async getFriendsActivities(userId: number, limit: number = 20, offset: number = 0): Promise<ActivityWithDetails[]> {
+    // Get user's friends first
+    const userFriends = await db
+      .select({ friendId: friendships.friendId })
+      .from(friendships)
+      .where(eq(friendships.userId, userId));
+
+    const friendIds = userFriends.map(f => f.friendId);
+
+    if (friendIds.length === 0) {
+      return [];
+    }
+
+    // Get activities from friends
+    const results = await db
+      .select({
+        id: activities.id,
+        userId: activities.userId,
+        type: activities.type,
+        placeId: activities.placeId,
+        oldRating: activities.oldRating,
+        newRating: activities.newRating,
+        createdAt: activities.createdAt,
+        user: {
+          id: users.id,
+          username: users.username,
+          email: users.email,
+          name: users.name,
+          profilePictureUrl: users.profilePictureUrl,
+          password: users.password,
+          isAdmin: users.isAdmin,
+          createdAt: users.createdAt,
+        },
+        place: {
+          id: places.id,
+          name: places.name,
+          typeId: places.typeId,
+          stateId: places.stateId,
+          stateName: places.stateName,
+          cityId: places.cityId,
+          cityName: places.cityName,
+          address: places.address,
+          description: places.description,
+          instagramProfile: places.instagramProfile,
+          hasRodizio: places.hasRodizio,
+          petFriendly: places.petFriendly,
+          recommendToFriends: places.recommendToFriends,
+          mainImage: places.mainImage,
+          itineraryFile: places.itineraryFile,
+          rating: places.rating,
+          isVisited: places.isVisited,
+          tags: places.tags,
+          isClone: places.isClone,
+          clonedFromUserId: places.clonedFromUserId,
+          createdBy: places.createdBy,
+          createdAt: places.createdAt,
+          updatedAt: places.updatedAt,
+          type: {
+            id: placeTypes.id,
+            name: placeTypes.name,
+            createdAt: placeTypes.createdAt,
+          }
+        }
+      })
+      .from(activities)
+      .innerJoin(users, eq(activities.userId, users.id))
+      .leftJoin(places, eq(activities.placeId, places.id))
+      .leftJoin(placeTypes, eq(places.typeId, placeTypes.id))
+      .where(inArray(activities.userId, friendIds))
+      .orderBy(desc(activities.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    return results.map(result => ({
+      ...result,
+      user: result.user as User,
+      place: result.place ? {
+        ...result.place,
+        type: result.place.type as PlaceType
+      } as Place & { type: PlaceType } : undefined
+    })) as ActivityWithDetails[];
+  }
+
+  sessionStore = new PostgresSessionStore({
+    pool: pool,
+    tableName: 'session'
+  });
 }
 
 export const storage = new DatabaseStorage();

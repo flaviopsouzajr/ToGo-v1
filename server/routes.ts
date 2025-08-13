@@ -191,6 +191,16 @@ export function registerRoutes(app: Express): Server {
       const createdBy = req.user.id;
       
       const place = await storage.createPlace(validData, createdBy);
+      
+      // Create activity for new recommendation if marked as recommendation to friends
+      if (validData.recommendToFriends) {
+        await storage.createActivity({
+          userId: createdBy,
+          type: 'nova_indicacao',
+          placeId: place.id
+        });
+      }
+      
       res.status(201).json(place);
     } catch (error) {
       next(error);
@@ -225,11 +235,33 @@ export function registerRoutes(app: Express): Server {
       
       console.log("Validated data:", validData);
       
+      // Get old place data to check for rating changes
+      const oldPlace = await storage.getPlace(id);
+      
       const place = await storage.updatePlace(id, validData);
       console.log("Updated place:", place);
       
       if (!place) {
         return res.status(404).json({ message: "Place not found" });
+      }
+      
+      // Check if rating changed and create activity
+      if (validData.rating !== undefined && oldPlace?.rating !== validData.rating.toString()) {
+        const oldRating = oldPlace?.rating ? parseFloat(oldPlace.rating) : null;
+        const newRating = validData.rating;
+        
+        let activityType = 'nova_avaliacao';
+        if (oldRating !== null && oldRating > 0) {
+          activityType = 'alteracao_avaliacao';
+        }
+        
+        await storage.createActivity({
+          userId: req.user.id,
+          type: activityType,
+          placeId: place.id,
+          oldRating: oldRating?.toString(),
+          newRating: newRating.toString()
+        });
       }
       
       res.json(place);
@@ -760,6 +792,21 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error changing password:", error);
       res.status(500).json({ message: "Falha ao alterar senha" });
+    }
+  });
+
+  // Feed Routes
+  app.get("/api/feed", requireAuth, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const limit = Number(req.query.limit) || 20;
+      const offset = Number(req.query.offset) || 0;
+      
+      const activities = await storage.getFriendsActivities(userId, limit, offset);
+      res.json(activities);
+    } catch (error) {
+      console.error("Error getting feed:", error);
+      res.status(500).json({ message: "Erro interno do servidor" });
     }
   });
 

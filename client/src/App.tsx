@@ -19,6 +19,7 @@ import { FriendsPage } from "@/pages/friends-page";
 import { FriendProfilePage } from "@/pages/friend-profile-page";
 import MyRecommendationsPage from "@/pages/my-recommendations-page";
 import ProfilePage from "@/pages/profile-page";
+import FeedPage from "@/pages/feed-page";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -49,6 +50,11 @@ function Router() {
       <Route path="/profile">
         <ProtectedRoute>
           <ProfilePage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/feed">
+        <ProtectedRoute>
+          <FeedPage />
         </ProtectedRoute>
       </Route>
       <Route path="/about" component={AboutPage} />

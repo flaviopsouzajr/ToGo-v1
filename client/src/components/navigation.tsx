@@ -75,6 +75,18 @@ export function Navigation() {
                   Amigos
                 </Link>
               )}
+              {user && (
+                <Link
+                  href="/feed"
+                  className={`transition-colors ${
+                    location === "/feed" 
+                      ? "text-togo-primary font-medium" 
+                      : "text-gray-700 hover:text-primary"
+                  }`}
+                >
+                  Feed
+                </Link>
+              )}
 
               <Link
                 href="/about"
