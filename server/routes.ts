@@ -707,6 +707,9 @@ export function registerRoutes(app: Express): Server {
   app.put("/api/user/change-password", requireAuth, async (req, res) => {
     try {
       console.log("Change password request received. Body:", req.body);
+      console.log("Request headers:", req.headers['content-type']);
+      console.log("Raw body:", req.rawBody);
+      
       const { currentPassword, newPassword } = req.body;
       
       // Validation

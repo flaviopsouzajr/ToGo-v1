@@ -158,10 +158,10 @@ export default function ProfilePage() {
     mutationFn: (data: PasswordChangeData) => 
       apiRequest("/api/user/change-password", {
         method: "PUT",
-        body: JSON.stringify({
+        body: {
           currentPassword: data.currentPassword,
           newPassword: data.newPassword
-        })
+        }
       }),
     onSuccess: () => {
       passwordForm.reset();
