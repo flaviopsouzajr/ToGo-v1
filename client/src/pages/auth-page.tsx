@@ -9,13 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Shield, UserPlus, LogIn } from "lucide-react";
+import { MapPin, Shield, UserPlus, LogIn, Eye, EyeOff } from "lucide-react";
 import { Link } from "wouter";
 import { Navigation } from "@/components/navigation";
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
   const [, setLocation] = useLocation();
+  const [showPassword, setShowPassword] = useState(false);
 
   // Redirect if already logged in - use useEffect to avoid render issues
   useEffect(() => {
@@ -39,6 +40,7 @@ export default function AuthPage() {
       username: "",
       email: "",
       password: "",
+      name: "",
     },
   });
 
@@ -150,6 +152,21 @@ export default function AuthPage() {
                 <CardContent>
                   <form onSubmit={registerForm.handleSubmit(onRegister)} className="space-y-4">
                     <div>
+                      <Label htmlFor="register-name">Nome</Label>
+                      <Input
+                        id="register-name"
+                        {...registerForm.register("name")}
+                        placeholder="Digite seu nome"
+                        required
+                      />
+                      {registerForm.formState.errors.name && (
+                        <p className="text-sm text-red-600 mt-1">
+                          {registerForm.formState.errors.name.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
                       <Label htmlFor="register-username">Nome de usuário</Label>
                       <Input
                         id="register-username"
@@ -182,13 +199,29 @@ export default function AuthPage() {
 
                     <div>
                       <Label htmlFor="register-password">Senha</Label>
-                      <Input
-                        id="register-password"
-                        type="password"
-                        {...registerForm.register("password")}
-                        placeholder="Crie uma senha segura"
-                        required
-                      />
+                      <div className="relative">
+                        <Input
+                          id="register-password"
+                          type={showPassword ? "text" : "password"}
+                          {...registerForm.register("password")}
+                          placeholder="Crie uma senha segura"
+                          required
+                          className="pr-10"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                       {registerForm.formState.errors.password && (
                         <p className="text-sm text-red-600 mt-1">
                           {registerForm.formState.errors.password.message}

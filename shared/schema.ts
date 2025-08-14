@@ -150,8 +150,10 @@ export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   email: true,
   password: true,
+  name: true,
 }).extend({
   email: z.string().email("Email deve ter um formato válido"),
+  name: z.string().min(1, "Nome é obrigatório"),
 });
 
 export const loginSchema = z.object({
