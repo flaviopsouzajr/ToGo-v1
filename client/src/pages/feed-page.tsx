@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { ArrowLeft, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -9,6 +10,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Navigation } from "@/components/navigation";
 import type { ActivityWithDetails } from "@shared/schema";
+
+interface FeedResponse {
+  activities: ActivityWithDetails[];
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
 
 function getActivityText(activity: ActivityWithDetails): string {
   const friendName = activity.user.name || activity.user.username;
@@ -147,16 +157,31 @@ function Footer() {
 }
 
 export default function FeedPage() {
-  const { data: activities, isLoading, error } = useQuery({
-    queryKey: ["/api/feed"],
+  const [currentPage, setCurrentPage] = useState(1);
+  const queryClient = useQueryClient();
+  
+  const { data: feedData, isLoading, error } = useQuery({
+    queryKey: ["/api/feed", currentPage],
     queryFn: async () => {
-      const response = await fetch("/api/feed", { credentials: "include" });
+      const limit = 4;
+      const offset = (currentPage - 1) * limit;
+      const response = await fetch(`/api/feed?limit=${limit}&offset=${offset}`, { 
+        credentials: "include" 
+      });
       if (!response.ok) {
         throw new Error("Erro ao carregar feed");
       }
-      return response.json() as Promise<ActivityWithDetails[]>;
+      return response.json() as Promise<FeedResponse>;
     },
   });
+
+  const handlePreviousPage = () => {
+    setCurrentPage(prev => prev - 1);
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => prev + 1);
+  };
 
   if (isLoading) {
     return (
@@ -222,7 +247,7 @@ export default function FeedPage() {
     );
   }
 
-  if (!activities || activities.length === 0) {
+  if (!feedData || feedData.activities.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navigation />
@@ -260,14 +285,51 @@ export default function FeedPage() {
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       <div className="container mx-auto p-4">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Feed de Atividades</h1>
+        <div className="flex items-center mb-6">
+          <Link href="/">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Voltar
+            </Button>
+          </Link>
+          <h1 className="text-2xl font-bold ml-4">Feed de Atividades</h1>
         </div>
 
         <div className="max-w-2xl mx-auto">
-          {activities.map((activity) => (
+          {feedData.activities.map((activity) => (
             <ActivityCard key={activity.id} activity={activity} />
           ))}
+          
+          {/* Paginação */}
+          {feedData.totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-6 mb-8">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePreviousPage}
+                disabled={!feedData.hasPreviousPage}
+                className="flex items-center gap-1"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Anterior
+              </Button>
+              
+              <span className="text-sm text-muted-foreground px-3">
+                Página {feedData.currentPage} de {feedData.totalPages}
+              </span>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextPage}
+                disabled={!feedData.hasNextPage}
+                className="flex items-center gap-1"
+              >
+                Próximo
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
       <Footer />

@@ -68,6 +68,7 @@ export interface IStorage {
   // Activities
   createActivity(activity: InsertActivity): Promise<Activity>;
   getFriendsActivities(userId: number, limit?: number, offset?: number): Promise<ActivityWithDetails[]>;
+  getFriendsActivitiesCount(userId: number): Promise<number>;
   
   sessionStore: any;
 }
@@ -575,6 +576,28 @@ export class DatabaseStorage implements IStorage {
       .values(activity)
       .returning();
     return newActivity;
+  }
+
+  async getFriendsActivitiesCount(userId: number): Promise<number> {
+    // Get user's friends first
+    const userFriends = await db
+      .select({ friendId: friendships.friendId })
+      .from(friendships)
+      .where(eq(friendships.userId, userId));
+
+    const friendIds = userFriends.map(f => f.friendId);
+
+    if (friendIds.length === 0) {
+      return 0;
+    }
+
+    // Count activities from friends
+    const [result] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(activities)
+      .where(inArray(activities.userId, friendIds));
+
+    return result?.count || 0;
   }
 
   async getFriendsActivities(userId: number, limit: number = 20, offset: number = 0): Promise<ActivityWithDetails[]> {

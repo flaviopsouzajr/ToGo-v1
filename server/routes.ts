@@ -817,11 +817,22 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/feed", requireAuth, async (req, res) => {
     try {
       const userId = req.user!.id;
-      const limit = Number(req.query.limit) || 20;
+      const limit = Number(req.query.limit) || 4;
       const offset = Number(req.query.offset) || 0;
       
-      const activities = await storage.getFriendsActivities(userId, limit, offset);
-      res.json(activities);
+      const [activities, totalCount] = await Promise.all([
+        storage.getFriendsActivities(userId, limit, offset),
+        storage.getFriendsActivitiesCount(userId)
+      ]);
+      
+      res.json({
+        activities,
+        totalCount,
+        currentPage: Math.floor(offset / limit) + 1,
+        totalPages: Math.ceil(totalCount / limit),
+        hasNextPage: offset + limit < totalCount,
+        hasPreviousPage: offset > 0
+      });
     } catch (error) {
       console.error("Error getting feed:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
