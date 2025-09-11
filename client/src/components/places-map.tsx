@@ -133,22 +133,7 @@ export function PlacesMap() {
 
   const validPlaces = placesWithCoords.filter(p => p.latitude && p.longitude);
 
-  // Mostrar mensagem quando não há lugares com coordenadas
-  if (placesWithCoords.length > 0 && validPlaces.length === 0) {
-    return (
-      <div className="w-full h-[600px] flex items-center justify-center bg-gray-50 rounded-lg">
-        <div className="text-center">
-          <MapPin className="mx-auto h-16 w-16 text-togo-primary mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Mapa do Brasil
-          </h3>
-          <p className="text-gray-600 max-w-md">
-            {placesWithCoords.length} {placesWithCoords.length === 1 ? 'lugar cadastrado' : 'lugares cadastrados'} na sua lista.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Sempre mostrar o mapa, mesmo sem coordenadas dos lugares
 
   return (
     <div className="w-full h-[600px] relative">
@@ -234,12 +219,13 @@ export function PlacesMap() {
         ))}
       </MapContainer>
       
-      {validPlaces.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-50 bg-opacity-75 rounded-lg">
-          <div className="text-center">
-            <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">Nenhum lugar encontrado para exibir no mapa</p>
-            <p className="text-sm text-gray-500 mt-1">Cadastre lugares com endereços válidos para vê-los aqui</p>
+      {placesWithCoords.length > 0 && validPlaces.length === 0 && (
+        <div className="absolute top-4 left-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-gray-200">
+          <div className="flex items-center gap-2 text-sm text-gray-700">
+            <MapPin className="h-4 w-4 text-togo-primary" />
+            <span>
+              <strong>{placesWithCoords.length}</strong> {placesWithCoords.length === 1 ? 'lugar cadastrado' : 'lugares cadastrados'} - Coordenadas não disponíveis
+            </span>
           </div>
         </div>
       )}
