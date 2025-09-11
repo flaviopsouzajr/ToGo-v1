@@ -310,6 +310,46 @@ export function PlacesMap() {
 
   const validPlaces = placesWithCoords.filter(p => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
 
+  // Função para separar lugares com coordenadas duplicadas
+  const separateDuplicateCoords = (places: PlaceWithCoordinates[]) => {
+    const coordGroups = new Map<string, PlaceWithCoordinates[]>();
+    
+    // Agrupar por coordenadas
+    places.forEach(place => {
+      const coordKey = `${place.latitude},${place.longitude}`;
+      if (!coordGroups.has(coordKey)) {
+        coordGroups.set(coordKey, []);
+      }
+      coordGroups.get(coordKey)!.push(place);
+    });
+    
+    // Aplicar offset para grupos com mais de 1 lugar
+    const separatedPlaces: PlaceWithCoordinates[] = [];
+    coordGroups.forEach(group => {
+      if (group.length === 1) {
+        separatedPlaces.push(group[0]);
+      } else {
+        // Aplicar offset circular para cada lugar no grupo
+        group.forEach((place, index) => {
+          const angle = (2 * Math.PI * index) / group.length;
+          const offsetDistance = 0.002; // ~200 metros
+          const latOffset = offsetDistance * Math.cos(angle);
+          const lonOffset = offsetDistance * Math.sin(angle);
+          
+          separatedPlaces.push({
+            ...place,
+            latitude: place.latitude! + latOffset,
+            longitude: place.longitude! + lonOffset
+          });
+        });
+      }
+    });
+    
+    return separatedPlaces;
+  };
+
+  const separatedPlaces = separateDuplicateCoords(validPlaces);
+
   // Sempre mostrar o mapa, mesmo sem coordenadas dos lugares
 
   return (
@@ -325,9 +365,9 @@ export function PlacesMap() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         
-        <MapController places={validPlaces} />
+        <MapController places={separatedPlaces} />
         
-        {validPlaces.map((place) => (
+        {separatedPlaces.map((place) => (
           <Marker
             key={place.id}
             position={[place.latitude!, place.longitude!]}
@@ -389,7 +429,7 @@ export function PlacesMap() {
         ))}
       </MapContainer>
       
-      {placesWithCoords.length > 0 && validPlaces.length === 0 && (
+      {placesWithCoords.length > 0 && separatedPlaces.length === 0 && (
         <div className="absolute top-4 left-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-gray-200">
           <div className="flex items-center gap-2 text-sm text-gray-700">
             <MapPin className="h-4 w-4 text-togo-primary" />
