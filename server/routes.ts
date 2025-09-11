@@ -839,6 +839,51 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Geocoding API endpoint (protected)
+  app.get("/api/geocode", requireAuth, async (req, res) => {
+    try {
+      const { address, city, state } = req.query;
+      
+      if (!address || !city || !state) {
+        return res.status(400).json({ message: "Address, city, and state are required" });
+      }
+
+      // Build full address string
+      const fullAddress = `${address}, ${city}, ${state}, Brasil`;
+      
+      // Use Nominatim OpenStreetMap API
+      const encodedAddress = encodeURIComponent(fullAddress);
+      const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodedAddress}`;
+      
+      const response = await fetch(geocodeUrl, {
+        headers: {
+          'User-Agent': 'ToGo App/1.0 (contact@example.com)'
+        }
+      });
+      
+      if (!response.ok) {
+        console.error(`Geocoding API error: ${response.status} ${response.statusText}`);
+        return res.status(500).json({ message: "Geocoding service unavailable" });
+      }
+      
+      const data = await response.json();
+      
+      if (data.length === 0) {
+        return res.json({ lat: null, lon: null });
+      }
+      
+      const result = data[0];
+      res.json({
+        lat: parseFloat(result.lat),
+        lon: parseFloat(result.lon)
+      });
+      
+    } catch (error) {
+      console.error("Geocoding error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

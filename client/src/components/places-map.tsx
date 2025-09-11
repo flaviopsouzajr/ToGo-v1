@@ -105,64 +105,127 @@ export function PlacesMap() {
     queryKey: ["/api/places"],
   });
 
-  // Coordenadas aproximadas dos estados brasileiros (centro geográfico)
-  const stateCoordinates: Record<string, [number, number]> = {
-    'Acre': [-8.77, -70.55],
-    'Alagoas': [-9.71, -35.73],
-    'Amapá': [1.41, -51.77],
-    'Amazonas': [-3.07, -61.66],
-    'Bahia': [-12.96, -38.51],
-    'Ceará': [-3.71, -38.54],
-    'Distrito Federal': [-15.83, -47.86],
-    'Espírito Santo': [-19.19, -40.34],
-    'Goiás': [-16.64, -49.31],
-    'Maranhão': [-2.55, -44.30],
-    'Mato Grosso': [-12.64, -55.42],
-    'Mato Grosso do Sul': [-20.51, -54.54],
-    'Minas Gerais': [-18.10, -44.38],
-    'Pará': [-5.53, -52.29],
-    'Paraíba': [-7.06, -35.55],
-    'Paraná': [-24.89, -51.55],
-    'Pernambuco': [-8.28, -35.07],
-    'Piauí': [-8.28, -43.68],
-    'Rio de Janeiro': [-22.84, -43.15],
-    'Rio Grande do Norte': [-5.22, -36.52],
-    'Rio Grande do Sul': [-30.01, -51.22],
-    'Rondônia': [-11.22, -62.80],
-    'Roraima': [1.89, -61.22],
-    'Santa Catarina': [-27.33, -49.44],
-    'São Paulo': [-23.55, -46.64],
-    'Sergipe': [-10.90, -37.07],
-    'Tocantins': [-10.25, -48.25]
+  // Função para fazer geocoding usando nossa API backend
+  const geocodeAddress = async (address: string | null, city: string, state: string) => {
+    if (!address) {
+      // Se não tem endereço, usar coordenadas aproximadas do centro do estado
+      const stateCoordinates: Record<string, [number, number]> = {
+        'Acre': [-8.77, -70.55],
+        'Alagoas': [-9.71, -35.73],
+        'Amapá': [1.41, -51.77],
+        'Amazonas': [-3.07, -61.66],
+        'Bahia': [-12.96, -38.51],
+        'Ceará': [-3.71, -38.54],
+        'Distrito Federal': [-15.83, -47.86],
+        'Espírito Santo': [-19.19, -40.34],
+        'Goiás': [-16.64, -49.31],
+        'Maranhão': [-2.55, -44.30],
+        'Mato Grosso': [-12.64, -55.42],
+        'Mato Grosso do Sul': [-20.51, -54.54],
+        'Minas Gerais': [-18.10, -44.38],
+        'Pará': [-5.53, -52.29],
+        'Paraíba': [-7.06, -35.55],
+        'Paraná': [-24.89, -51.55],
+        'Pernambuco': [-8.28, -35.07],
+        'Piauí': [-8.28, -43.68],
+        'Rio de Janeiro': [-22.84, -43.15],
+        'Rio Grande do Norte': [-5.22, -36.52],
+        'Rio Grande do Sul': [-30.01, -51.22],
+        'Rondônia': [-11.22, -62.80],
+        'Roraima': [1.89, -61.22],
+        'Santa Catarina': [-27.33, -49.44],
+        'São Paulo': [-23.55, -46.64],
+        'Sergipe': [-10.90, -37.07],
+        'Tocantins': [-10.25, -48.25]
+      };
+      
+      const coords = stateCoordinates[state];
+      if (coords) {
+        const [lat, lng] = coords;
+        const variation = 0.5;
+        return {
+          lat: lat + (Math.random() - 0.5) * variation,
+          lon: lng + (Math.random() - 0.5) * variation
+        };
+      }
+      return null;
+    }
+
+    try {
+      // Tentar primeiro com endereço completo
+      const params = new URLSearchParams({
+        address,
+        city,
+        state
+      });
+      
+      const response = await fetch(`/api/geocode?${params}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.lat && data.lon) {
+          return { lat: data.lat, lon: data.lon };
+        }
+      }
+      
+      // Se falhar, tentar só com cidade + estado
+      const fallbackParams = new URLSearchParams({
+        address: city,
+        city,
+        state
+      });
+      
+      const fallbackResponse = await fetch(`/api/geocode?${fallbackParams}`);
+      if (fallbackResponse.ok) {
+        const fallbackData = await fallbackResponse.json();
+        if (fallbackData.lat && fallbackData.lon) {
+          return { lat: fallbackData.lat, lon: fallbackData.lon };
+        }
+      }
+      
+      console.warn(`Geocoding failed for ${address}, ${city}, ${state} - using state approximation`);
+      return null;
+    } catch (error) {
+      console.warn(`Geocoding error for ${address}, ${city}, ${state}:`, error);
+      return null;
+    }
   };
 
-  // Criar mapa com coordenadas aproximadas baseadas no estado
+  // Geocodificar endereços quando os lugares forem carregados
   useEffect(() => {
     if (places.length > 0) {
-      const placesWithApproxCoords = places.map(place => {
-        const coords = stateCoordinates[place.stateName];
-        if (coords) {
-          // Adicionar pequena variação para evitar sobreposição
-          const [lat, lng] = coords;
-          const variation = 0.5; // Graus de variação
-          const randomLat = lat + (Math.random() - 0.5) * variation;
-          const randomLng = lng + (Math.random() - 0.5) * variation;
-          
-          return {
-            ...place,
-            latitude: randomLat,
-            longitude: randomLng
-          };
-        }
-        return {
+      setIsGeocoding(true);
+      
+      Promise.all(
+        places.map(async (place) => {
+          try {
+            const coords = await geocodeAddress(place.address, place.cityName, place.stateName);
+            
+            return {
+              ...place,
+              latitude: coords?.lat,
+              longitude: coords?.lon
+            };
+          } catch (error) {
+            console.error(`Erro ao geocodificar ${place.name}:`, error);
+            return {
+              ...place,
+              latitude: undefined,
+              longitude: undefined
+            };
+          }
+        })
+      ).then((placesWithCoordinates) => {
+        setPlacesWithCoords(placesWithCoordinates);
+        setIsGeocoding(false);
+      }).catch((error) => {
+        console.error('Erro geral na geocodificação:', error);
+        setPlacesWithCoords(places.map(place => ({
           ...place,
           latitude: undefined,
           longitude: undefined
-        };
+        })));
+        setIsGeocoding(false);
       });
-      
-      setPlacesWithCoords(placesWithApproxCoords);
-      setIsGeocoding(false);
     }
   }, [places]);
 
@@ -179,7 +242,7 @@ export function PlacesMap() {
     );
   }
 
-  const validPlaces = placesWithCoords.filter(p => p.latitude && p.longitude);
+  const validPlaces = placesWithCoords.filter(p => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
 
   // Sempre mostrar o mapa, mesmo sem coordenadas dos lugares
 
