@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { StarRating } from "@/components/star-rating";
 import { PlaceWithType, PlaceType, insertPlaceTypeSchema } from "@shared/schema";
-import { MapPin, Plus, Edit, Trash2, Tags, Search } from "lucide-react";
+import { MapPin, Plus, Edit, Trash2, Tags, Search, X, Filter, Star } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ProtectedRoute } from "@/lib/protected-route";
@@ -23,6 +23,9 @@ function AdminPageContent() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState<number | null>(null);
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<"all" | "visited" | "to_visit">("all");
+  const [selectedRatingFilter, setSelectedRatingFilter] = useState<number | null>(null);
   const [isTypeDialogOpen, setIsTypeDialogOpen] = useState(false);
   const [editingType, setEditingType] = useState<PlaceType | null>(null);
   const [editingPlace, setEditingPlace] = useState<PlaceWithType | null>(null);
@@ -45,11 +48,26 @@ function AdminPageContent() {
     queryKey: ["/api/place-types"],
   });
 
-  const filteredPlaces = places.filter(place =>
-    place.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    place.cityName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    place.stateName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPlaces = places.filter(place => {
+    // Text search filter
+    const matchesSearch = place.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      place.cityName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      place.stateName.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Type filter
+    const matchesType = selectedTypeFilter === null || place.typeId === selectedTypeFilter;
+    
+    // Status filter
+    const matchesStatus = selectedStatusFilter === "all" || 
+      (selectedStatusFilter === "visited" && place.isVisited) ||
+      (selectedStatusFilter === "to_visit" && !place.isVisited);
+    
+    // Rating filter
+    const matchesRating = selectedRatingFilter === null || 
+      (place.rating && Math.floor(parseFloat(place.rating)) >= selectedRatingFilter);
+    
+    return matchesSearch && matchesType && matchesStatus && matchesRating;
+  });
 
   // Place Type form
   const typeForm = useForm({
@@ -197,9 +215,9 @@ function AdminPageContent() {
           <TabsContent value="places" className="space-y-6">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Gerenciar Lugares</CardTitle>
-                  <div className="flex items-center space-x-4">
+                <div className="flex flex-col space-y-4">
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Gerenciar Lugares</CardTitle>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
@@ -207,8 +225,144 @@ function AdminPageContent() {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-10 w-64"
+                        data-testid="input-search-places"
                       />
                     </div>
+                  </div>
+                  
+                  {/* Filters Row */}
+                  <div className="flex flex-col md:flex-row md:flex-wrap items-start md:items-center gap-3 p-4 bg-gray-50 rounded-lg border">
+                    <div className="flex items-center gap-2">
+                      <Filter className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm font-medium text-gray-700">Filtros:</span>
+                    </div>
+                    
+                    {/* Type Filter */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">Tipo:</span>
+                      <div className="flex flex-wrap gap-1">
+                        <Button
+                          variant={selectedTypeFilter === null ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSelectedTypeFilter(null)}
+                          className={`h-7 text-xs ${
+                            selectedTypeFilter === null
+                              ? "bg-togo-primary text-white hover:bg-togo-primary"
+                              : "hover:bg-gray-100"
+                          }`}
+                          data-testid="filter-type-all"
+                        >
+                          Todos
+                        </Button>
+                        {placeTypes.map((type) => (
+                          <Button
+                            key={type.id}
+                            variant={selectedTypeFilter === type.id ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setSelectedTypeFilter(type.id)}
+                            className={`h-7 text-xs ${
+                              selectedTypeFilter === type.id
+                                ? "bg-togo-primary text-white hover:bg-togo-primary"
+                                : "hover:bg-gray-100"
+                            }`}
+                            data-testid={`filter-type-${type.id}`}
+                          >
+                            {type.name}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Status Filter */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">Status:</span>
+                      <div className="flex gap-1">
+                        {[
+                          { value: "all", label: "Todos" },
+                          { value: "visited", label: "Visitados" },
+                          { value: "to_visit", label: "Para Visitar" }
+                        ].map((status) => (
+                          <Button
+                            key={status.value}
+                            variant={selectedStatusFilter === status.value ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setSelectedStatusFilter(status.value as any)}
+                            className={`h-7 text-xs ${
+                              selectedStatusFilter === status.value
+                                ? "bg-togo-secondary text-white hover:bg-togo-secondary"
+                                : "hover:bg-gray-100"
+                            }`}
+                            data-testid={`filter-status-${status.value}`}
+                          >
+                            {status.label}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Rating Filter */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">Avaliação:</span>
+                      <div className="flex gap-1">
+                        <Button
+                          variant={selectedRatingFilter === null ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSelectedRatingFilter(null)}
+                          className={`h-7 text-xs ${
+                            selectedRatingFilter === null
+                              ? "bg-togo-light text-white hover:bg-togo-light"
+                              : "hover:bg-gray-100"
+                          }`}
+                          data-testid="filter-rating-all"
+                        >
+                          Todas
+                        </Button>
+                        {[5, 4, 3, 2, 1].map((rating) => (
+                          <Button
+                            key={rating}
+                            variant={selectedRatingFilter === rating ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setSelectedRatingFilter(rating)}
+                            className={`h-7 text-xs flex items-center gap-1 ${
+                              selectedRatingFilter === rating
+                                ? "bg-togo-light text-white hover:bg-togo-light"
+                                : "hover:bg-gray-100"
+                            }`}
+                            data-testid={`filter-rating-${rating}`}
+                          >
+                            <Star className="h-3 w-3" />
+                            {rating}+
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Clear Filters */}
+                    {(selectedTypeFilter !== null || selectedStatusFilter !== "all" || selectedRatingFilter !== null) && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedTypeFilter(null);
+                          setSelectedStatusFilter("all");
+                          setSelectedRatingFilter(null);
+                        }}
+                        className="h-7 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                        data-testid="filter-clear-all"
+                      >
+                        <X className="h-3 w-3 mr-1" />
+                        Limpar Filtros
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {/* Results Count */}
+                  <div className="text-sm text-gray-500">
+                    {filteredPlaces.length === places.length ? (
+                      `${places.length} ${places.length === 1 ? 'lugar encontrado' : 'lugares encontrados'}`
+                    ) : (
+                      `${filteredPlaces.length} de ${places.length} lugares encontrados`
+                    )}
                   </div>
                 </div>
               </CardHeader>
@@ -226,121 +380,141 @@ function AdminPageContent() {
                     </p>
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Lugar</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Localização</TableHead>
-                        <TableHead>Avaliação</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredPlaces.map((place) => (
-                        <TableRow 
-                          key={place.id}
-                          className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                          onClick={() => {
-                            setSelectedPlace(place);
-                            setIsDetailsModalOpen(true);
-                          }}
-                        >
-                          <TableCell>
-                            <div className="flex items-center space-x-3">
-                              {place.mainImage ? (
-                                <img 
-                                  src={place.mainImage} 
-                                  alt={place.name}
-                                  className="h-10 w-10 rounded-lg object-cover"
-                                />
-                              ) : (
-                                <div className="h-10 w-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                                  <MapPin className="h-5 w-5 text-gray-400" />
-                                </div>
-                              )}
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <div className="font-medium text-gray-900">{place.name}</div>
-                                  {place.isClone && (
-                                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-                                      Clone
-                                    </Badge>
-                                  )}
-                                </div>
-                                <div className="text-sm text-gray-500">
-                                  {new Date(place.createdAt).toLocaleDateString()}
-                                  {place.isClone && place.clonedFromUserId && (
-                                    <span className="ml-2 text-blue-600">• Clonado do usuário #{place.clonedFromUserId}</span>
-                                  )}
-                                </div>
-                              </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                    {filteredPlaces.map((place) => (
+                      <Card 
+                        key={place.id}
+                        className="group cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-togo-primary/20 hover:border-togo-primary/50 hover:-translate-y-1 overflow-hidden bg-white hover:bg-gradient-to-br hover:from-white hover:to-togo-lightest/30"
+                        onClick={() => {
+                          setSelectedPlace(place);
+                          setIsDetailsModalOpen(true);
+                        }}
+                        data-testid={`card-place-${place.id}`}
+                      >
+                        {/* Image Section */}
+                        <div className="relative h-48 bg-gradient-to-br from-togo-lightest to-togo-lighter">
+                          {place.mainImage ? (
+                            <img 
+                              src={place.mainImage} 
+                              alt={place.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              data-testid={`img-place-${place.id}`}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                              <MapPin className="h-16 w-16 text-gray-400" />
                             </div>
-                          </TableCell>
-                          <TableCell>
+                          )}
+                          
+                          {/* Type Badge - Positioned on image */}
+                          <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
                             <Badge 
-                              className={`
-                                ${place.type.name === "Restaurante" ? "bg-togo-primary text-white" : ""}
-                                ${place.type.name === "Ponto Turístico" ? "bg-togo-secondary text-white" : ""}
-                                ${place.type.name === "Cidade" ? "bg-togo-light text-white" : ""}
-                              `}
+                              className={`shadow-sm ${
+                                place.type.name === "Restaurante" ? "bg-togo-primary text-white hover:bg-togo-primary" : 
+                                place.type.name === "Ponto Turístico" ? "bg-togo-secondary text-white hover:bg-togo-secondary" : 
+                                place.type.name === "Cidade" ? "bg-togo-light text-white hover:bg-togo-light" : 
+                                "bg-gray-600 text-white"
+                              }`}
+                              data-testid={`badge-type-${place.id}`}
                             >
                               {place.type.name}
                             </Badge>
                             {place.hasRodizio && (
-                              <Badge variant="destructive" className="ml-2 text-xs">
+                              <Badge variant="destructive" className="shadow-sm text-xs">
                                 Rodízio
                               </Badge>
                             )}
-                          </TableCell>
-                          <TableCell>{place.cityName}, {place.stateName}</TableCell>
-                          <TableCell>
-                            {place.rating ? (
-                              <StarRating rating={parseFloat(place.rating)} size="sm" />
-                            ) : (
-                              <span className="text-gray-400">-</span>
+                            {place.isClone && (
+                              <Badge variant="outline" className="text-xs bg-white/90 text-blue-700 border-blue-200 shadow-sm">
+                                Clone
+                              </Badge>
                             )}
-                          </TableCell>
-                          <TableCell>
+                          </div>
+
+                          {/* Status Badge - Positioned on image */}
+                          <div className="absolute top-3 right-3">
                             <Badge 
                               variant={place.isVisited ? "default" : "secondary"}
-                              className={place.isVisited ? "bg-green-100 text-green-800" : ""}
+                              className={`shadow-sm ${place.isVisited ? "bg-togo-secondary text-white hover:bg-togo-secondary" : "bg-white/90 text-gray-700 hover:bg-white"}`}
+                              data-testid={`badge-status-${place.id}`}
                             >
                               {place.isVisited ? "Visitado" : "Para visitar"}
                             </Badge>
-                          </TableCell>
-                          <TableCell>
+                          </div>
+                        </div>
+
+                        {/* Content Section */}
+                        <CardContent className="p-4 md:p-6 space-y-3">
+                          {/* Name and Date */}
+                          <div>
+                            <h3 className="font-semibold text-lg text-gray-900 group-hover:text-togo-primary transition-colors duration-200 line-clamp-2" data-testid={`text-name-${place.id}`}>
+                              {place.name}
+                            </h3>
+                            <div className="text-sm text-gray-500 mt-1">
+                              Cadastrado em {new Date(place.createdAt).toLocaleDateString('pt-BR')}
+                              {place.isClone && place.clonedFromUserId && (
+                                <div className="text-blue-600 text-xs mt-1">Clonado do usuário #{place.clonedFromUserId}</div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Location */}
+                          <div className="flex items-center text-gray-600 text-sm">
+                            <MapPin className="h-4 w-4 mr-2 text-togo-primary" />
+                            <span data-testid={`text-location-${place.id}`}>{place.cityName}, {place.stateName}</span>
+                          </div>
+
+                          {/* Rating */}
+                          <div className="flex items-center" data-testid={`rating-${place.id}`}>
+                            {place.rating ? (
+                              <StarRating rating={parseFloat(place.rating)} size="sm" />
+                            ) : (
+                              <span className="text-gray-400 text-sm">Sem avaliação</span>
+                            )}
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                             <div className="flex items-center space-x-2">
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-blue-600 hover:text-blue-500"
+                                className="text-togo-primary hover:text-togo-secondary hover:bg-togo-lightest hover:scale-110 transition-all duration-200 p-2 min-h-[44px] min-w-[44px] md:min-h-[36px] md:min-w-[36px] touch-manipulation"
+                                title="Editar lugar"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setEditingPlace(place);
                                 }}
+                                data-testid={`button-edit-${place.id}`}
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-red-600 hover:text-red-500"
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 hover:scale-110 transition-all duration-200 p-2 min-h-[44px] min-w-[44px] md:min-h-[36px] md:min-w-[36px] touch-manipulation"
+                                title="Excluir lugar"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deletePlaceMutation.mutate(place.id);
+                                  if (window.confirm(`Tem certeza que deseja excluir "${place.name}"?`)) {
+                                    deletePlaceMutation.mutate(place.id);
+                                  }
                                 }}
                                 disabled={deletePlaceMutation.isPending}
+                                data-testid={`button-delete-${place.id}`}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                            
+                            <div className="text-xs text-gray-400">
+                              ID: {place.id}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 )}
               </CardContent>
             </Card>
