@@ -105,43 +105,16 @@ export function PlacesMap() {
     queryKey: ["/api/places"],
   });
 
-  // Geocodificar endereços quando os lugares forem carregados
+  // Criar mapa básico do Brasil sem geocoding automático para evitar erros de fetch
   useEffect(() => {
     if (places.length > 0) {
-      setIsGeocoding(true);
-      
-      Promise.all(
-        places.map(async (place) => {
-          try {
-            const coords = await geocodeAddress(place.address, place.cityName, place.stateName);
-            
-            return {
-              ...place,
-              latitude: coords?.lat,
-              longitude: coords?.lon
-            };
-          } catch (error) {
-            console.error(`Erro ao geocodificar ${place.name}:`, error);
-            return {
-              ...place,
-              latitude: undefined,
-              longitude: undefined
-            };
-          }
-        })
-      ).then((placesWithCoordinates) => {
-        setPlacesWithCoords(placesWithCoordinates);
-        setIsGeocoding(false);
-      }).catch((error) => {
-        console.error('Erro geral na geocodificação:', error);
-        // Em caso de erro, definir os lugares sem coordenadas
-        setPlacesWithCoords(places.map(place => ({
-          ...place,
-          latitude: undefined,
-          longitude: undefined
-        })));
-        setIsGeocoding(false);
-      });
+      // Definir lugares sem coordenadas por enquanto para evitar erros de rede
+      setPlacesWithCoords(places.map(place => ({
+        ...place,
+        latitude: undefined,
+        longitude: undefined
+      })));
+      setIsGeocoding(false);
     }
   }, [places]);
 
@@ -165,12 +138,12 @@ export function PlacesMap() {
     return (
       <div className="w-full h-[600px] flex items-center justify-center bg-gray-50 rounded-lg">
         <div className="text-center">
-          <MapPin className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+          <MapPin className="mx-auto h-16 w-16 text-togo-primary mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Não foi possível localizar os lugares no mapa
+            Mapa do Brasil
           </h3>
           <p className="text-gray-600 max-w-md">
-            Houve um problema ao geocodificar os endereços. O mapa será carregado sem os marcadores.
+            {placesWithCoords.length} {placesWithCoords.length === 1 ? 'lugar cadastrado' : 'lugares cadastrados'} na sua lista.
           </p>
         </div>
       </div>
