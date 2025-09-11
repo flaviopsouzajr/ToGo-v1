@@ -105,15 +105,63 @@ export function PlacesMap() {
     queryKey: ["/api/places"],
   });
 
-  // Criar mapa básico do Brasil sem geocoding automático para evitar erros de fetch
+  // Coordenadas aproximadas dos estados brasileiros (centro geográfico)
+  const stateCoordinates: Record<string, [number, number]> = {
+    'Acre': [-8.77, -70.55],
+    'Alagoas': [-9.71, -35.73],
+    'Amapá': [1.41, -51.77],
+    'Amazonas': [-3.07, -61.66],
+    'Bahia': [-12.96, -38.51],
+    'Ceará': [-3.71, -38.54],
+    'Distrito Federal': [-15.83, -47.86],
+    'Espírito Santo': [-19.19, -40.34],
+    'Goiás': [-16.64, -49.31],
+    'Maranhão': [-2.55, -44.30],
+    'Mato Grosso': [-12.64, -55.42],
+    'Mato Grosso do Sul': [-20.51, -54.54],
+    'Minas Gerais': [-18.10, -44.38],
+    'Pará': [-5.53, -52.29],
+    'Paraíba': [-7.06, -35.55],
+    'Paraná': [-24.89, -51.55],
+    'Pernambuco': [-8.28, -35.07],
+    'Piauí': [-8.28, -43.68],
+    'Rio de Janeiro': [-22.84, -43.15],
+    'Rio Grande do Norte': [-5.22, -36.52],
+    'Rio Grande do Sul': [-30.01, -51.22],
+    'Rondônia': [-11.22, -62.80],
+    'Roraima': [1.89, -61.22],
+    'Santa Catarina': [-27.33, -49.44],
+    'São Paulo': [-23.55, -46.64],
+    'Sergipe': [-10.90, -37.07],
+    'Tocantins': [-10.25, -48.25]
+  };
+
+  // Criar mapa com coordenadas aproximadas baseadas no estado
   useEffect(() => {
     if (places.length > 0) {
-      // Definir lugares sem coordenadas por enquanto para evitar erros de rede
-      setPlacesWithCoords(places.map(place => ({
-        ...place,
-        latitude: undefined,
-        longitude: undefined
-      })));
+      const placesWithApproxCoords = places.map(place => {
+        const coords = stateCoordinates[place.stateName];
+        if (coords) {
+          // Adicionar pequena variação para evitar sobreposição
+          const [lat, lng] = coords;
+          const variation = 0.5; // Graus de variação
+          const randomLat = lat + (Math.random() - 0.5) * variation;
+          const randomLng = lng + (Math.random() - 0.5) * variation;
+          
+          return {
+            ...place,
+            latitude: randomLat,
+            longitude: randomLng
+          };
+        }
+        return {
+          ...place,
+          latitude: undefined,
+          longitude: undefined
+        };
+      });
+      
+      setPlacesWithCoords(placesWithApproxCoords);
       setIsGeocoding(false);
     }
   }, [places]);
@@ -177,7 +225,7 @@ export function PlacesMap() {
                     )}
                     
                     <div className="flex items-center justify-between">
-                      <StarRating rating={place.rating || 0} size="sm" />
+                      <StarRating rating={Number(place.rating || 0)} size="sm" />
                       <div className="flex items-center gap-1 text-xs">
                         {place.isVisited ? (
                           <CheckCircle className="h-3 w-3 text-green-500" />
@@ -188,13 +236,6 @@ export function PlacesMap() {
                           {place.isVisited ? 'Visitado' : 'Para visitar'}
                         </span>
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-1 text-xs">
-                      <span className="text-gray-600">Pet Friendly:</span>
-                      <span className={place.petFriendly ? "text-green-600" : "text-red-600"}>
-                        {place.petFriendly ? 'Sim 🐾' : 'Não'}
-                      </span>
                     </div>
                     
                     {place.tags && place.tags.length > 0 && (
