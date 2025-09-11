@@ -28,7 +28,16 @@ interface PlaceWithCoordinates extends PlaceWithType {
 async function geocodeAddress(address: string, city: string, state: string): Promise<{ lat: number; lon: number } | null> {
   try {
     const fullAddress = `${address}, ${city}, ${state}, Brasil`;
-    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&limit=1`);
+    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&limit=1`, {
+      headers: {
+        'User-Agent': 'ToGo App/1.0 (contact@example.com)'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const data = await response.json();
     
     if (data && data.length > 0) {
@@ -40,7 +49,16 @@ async function geocodeAddress(address: string, city: string, state: string): Pro
     
     // Fallback: tentar apenas com cidade e estado
     const cityStateAddress = `${city}, ${state}, Brasil`;
-    const cityResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityStateAddress)}&limit=1`);
+    const cityResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityStateAddress)}&limit=1`, {
+      headers: {
+        'User-Agent': 'ToGo App/1.0 (contact@example.com)'
+      }
+    });
+    
+    if (!cityResponse.ok) {
+      throw new Error(`HTTP error! status: ${cityResponse.status}`);
+    }
+    
     const cityData = await cityResponse.json();
     
     if (cityData && cityData.length > 0) {
@@ -94,16 +112,34 @@ export function PlacesMap() {
       
       Promise.all(
         places.map(async (place) => {
-          const coords = await geocodeAddress(place.address, place.cityName, place.stateName);
-          
-          return {
-            ...place,
-            latitude: coords?.lat,
-            longitude: coords?.lon
-          };
+          try {
+            const coords = await geocodeAddress(place.address, place.cityName, place.stateName);
+            
+            return {
+              ...place,
+              latitude: coords?.lat,
+              longitude: coords?.lon
+            };
+          } catch (error) {
+            console.error(`Erro ao geocodificar ${place.name}:`, error);
+            return {
+              ...place,
+              latitude: undefined,
+              longitude: undefined
+            };
+          }
         })
       ).then((placesWithCoordinates) => {
         setPlacesWithCoords(placesWithCoordinates);
+        setIsGeocoding(false);
+      }).catch((error) => {
+        console.error('Erro geral na geocodificação:', error);
+        // Em caso de erro, definir os lugares sem coordenadas
+        setPlacesWithCoords(places.map(place => ({
+          ...place,
+          latitude: undefined,
+          longitude: undefined
+        })));
         setIsGeocoding(false);
       });
     }
@@ -123,6 +159,23 @@ export function PlacesMap() {
   }
 
   const validPlaces = placesWithCoords.filter(p => p.latitude && p.longitude);
+
+  // Mostrar mensagem quando não há lugares com coordenadas
+  if (placesWithCoords.length > 0 && validPlaces.length === 0) {
+    return (
+      <div className="w-full h-[600px] flex items-center justify-center bg-gray-50 rounded-lg">
+        <div className="text-center">
+          <MapPin className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Não foi possível localizar os lugares no mapa
+          </h3>
+          <p className="text-gray-600 max-w-md">
+            Houve um problema ao geocodificar os endereços. O mapa será carregado sem os marcadores.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full h-[600px] relative">
