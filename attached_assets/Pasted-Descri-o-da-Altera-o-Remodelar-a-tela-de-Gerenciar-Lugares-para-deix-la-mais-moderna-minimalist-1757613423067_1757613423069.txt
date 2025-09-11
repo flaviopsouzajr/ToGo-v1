@@ -1,0 +1,68 @@
+Descrição da Alteração:
+Remodelar a tela de Gerenciar Lugares para deixá-la mais moderna, minimalista e amigável ao usuário, mantendo todas as funcionalidades existentes (edição, exclusão, busca, filtros e listagem).
+A alteração deve ser apenas visual e de usabilidade, sem alterar a lógica ou funcionalidades já implementadas.
+Além disso, a tela deve ser 100% responsiva, funcionando sem problemas em desktop, tablet e dispositivos móveis.
+
+✅ Especificações de UX/UI:
+
+Layout
+
+Substituir a tabela atual por cards individuais em formato de grade responsiva.
+
+Cada card deve exibir:
+
+Foto do lugar em destaque (topo do card).
+
+Nome do lugar + data de cadastro.
+
+Tipo (badge colorida).
+
+Localização (cidade + estado).
+
+Avaliação (estrelas).
+
+Status (badge com cores diferentes).
+
+Botões de ações (editar ✏️ e excluir 🗑️).
+
+Busca e Filtros
+
+Campo de busca fixo no topo da tela.
+
+Filtros de Tipo, Status e Avaliação apresentados como chips interativos ou menu suspenso.
+
+Interatividade
+
+Hover nos cards com sombra suave e destaque discreto na borda.
+
+Botões de ação com ícones modernos e tooltip ao passar o mouse.
+
+Estilo
+
+Seguir paleta já definida no sistema (#4b7f52, #7dd181, #96e8bc, #b6f9c9, #c9ffe2).
+
+Cards com cantos arredondados e espaçamento interno confortável.
+
+Tipografia clara, títulos em destaque e informações secundárias em cinza suave.
+
+Responsividade
+
+Desktop: grade com 3 a 4 colunas.
+
+Tablets: grade com 2 colunas.
+
+Celulares: 1 card por linha, com elementos reorganizados em pilha para facilitar leitura.
+
+Garantir que os botões e ícones fiquem acessíveis e confortáveis em telas menores (touch friendly).
+
+⚠️ Restrições:
+
+Não modificar funcionalidades já existentes (edição, exclusão, cadastro, busca).
+
+Alteração restrita apenas ao design da tela de gerenciamento.
+
+Garantir compatibilidade com navegadores modernos.
+
+✅ Resumo Simplificado:
+
+Remodelar a tela de Gerenciar Lugares para exibir os lugares em cards modernos, responsivos e intuitivos, garantindo boa visualização e usabilidade em qualquer dispositivo (desktop, tablet e mobile), mantendo todas as funcionalidades já existentes.
