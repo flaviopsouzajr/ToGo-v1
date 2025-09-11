@@ -151,6 +151,17 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Rota específica para o mapa - retorna todos os lugares públicos (sem filtro de usuário)
+  app.get("/api/places/public", requireAuth, async (req, res, next) => {
+    try {
+      // Sem filtro createdBy - mostra lugares de todos os usuários
+      const places = await storage.getPlaces({});
+      res.json(places);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   app.get("/api/places/:id", async (req, res, next) => {
     try {
       const id = parseInt(req.params.id);

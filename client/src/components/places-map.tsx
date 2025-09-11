@@ -102,7 +102,7 @@ export function PlacesMap() {
   const [isGeocoding, setIsGeocoding] = useState(false);
 
   const { data: places = [], isLoading } = useQuery<PlaceWithType[]>({
-    queryKey: ["/api/places"],
+    queryKey: ["/api/places/public"],
   });
 
   // Função auxiliar para obter coordenadas do estado
