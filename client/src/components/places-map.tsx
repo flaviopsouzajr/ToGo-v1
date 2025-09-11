@@ -105,56 +105,84 @@ export function PlacesMap() {
     queryKey: ["/api/places"],
   });
 
+  // Função auxiliar para obter coordenadas do estado
+  const getStateCoordinates = (state: string) => {
+    const stateCoordinates: Record<string, [number, number]> = {
+      'Acre': [-8.77, -70.55],
+      'Alagoas': [-9.71, -35.73],
+      'Amapá': [1.41, -51.77],
+      'Amazonas': [-3.07, -61.66],
+      'Bahia': [-12.96, -38.51],
+      'Ceará': [-3.71, -38.54],
+      'Distrito Federal': [-15.83, -47.86],
+      'Espírito Santo': [-19.19, -40.34],
+      'Goiás': [-16.64, -49.31],
+      'Maranhão': [-2.55, -44.30],
+      'Mato Grosso': [-12.64, -55.42],
+      'Mato Grosso do Sul': [-20.51, -54.54],
+      'Minas Gerais': [-18.10, -44.38],
+      'Pará': [-5.53, -52.29],
+      'Paraíba': [-7.06, -35.55],
+      'Paraná': [-24.89, -51.55],
+      'Pernambuco': [-8.28, -35.07],
+      'Piauí': [-8.28, -43.68],
+      'Rio de Janeiro': [-22.84, -43.15],
+      'Rio Grande do Norte': [-5.22, -36.52],
+      'Rio Grande do Sul': [-30.01, -51.22],
+      'Rondônia': [-11.22, -62.80],
+      'Roraima': [1.89, -61.22],
+      'Santa Catarina': [-27.33, -49.44],
+      'São Paulo': [-23.55, -46.64],
+      'Sergipe': [-10.90, -37.07],
+      'Tocantins': [-10.25, -48.25]
+    };
+    
+    const coords = stateCoordinates[state];
+    if (coords) {
+      const [lat, lng] = coords;
+      const variation = 0.5;
+      return {
+        lat: lat + (Math.random() - 0.5) * variation,
+        lon: lng + (Math.random() - 0.5) * variation
+      };
+    }
+    return null;
+  };
+
   // Função para fazer geocoding usando nossa API backend
   const geocodeAddress = async (address: string | null, city: string, state: string) => {
     if (!address) {
       // Se não tem endereço, usar coordenadas aproximadas do centro do estado
-      const stateCoordinates: Record<string, [number, number]> = {
-        'Acre': [-8.77, -70.55],
-        'Alagoas': [-9.71, -35.73],
-        'Amapá': [1.41, -51.77],
-        'Amazonas': [-3.07, -61.66],
-        'Bahia': [-12.96, -38.51],
-        'Ceará': [-3.71, -38.54],
-        'Distrito Federal': [-15.83, -47.86],
-        'Espírito Santo': [-19.19, -40.34],
-        'Goiás': [-16.64, -49.31],
-        'Maranhão': [-2.55, -44.30],
-        'Mato Grosso': [-12.64, -55.42],
-        'Mato Grosso do Sul': [-20.51, -54.54],
-        'Minas Gerais': [-18.10, -44.38],
-        'Pará': [-5.53, -52.29],
-        'Paraíba': [-7.06, -35.55],
-        'Paraná': [-24.89, -51.55],
-        'Pernambuco': [-8.28, -35.07],
-        'Piauí': [-8.28, -43.68],
-        'Rio de Janeiro': [-22.84, -43.15],
-        'Rio Grande do Norte': [-5.22, -36.52],
-        'Rio Grande do Sul': [-30.01, -51.22],
-        'Rondônia': [-11.22, -62.80],
-        'Roraima': [1.89, -61.22],
-        'Santa Catarina': [-27.33, -49.44],
-        'São Paulo': [-23.55, -46.64],
-        'Sergipe': [-10.90, -37.07],
-        'Tocantins': [-10.25, -48.25]
-      };
-      
-      const coords = stateCoordinates[state];
-      if (coords) {
-        const [lat, lng] = coords;
-        const variation = 0.5;
-        return {
-          lat: lat + (Math.random() - 0.5) * variation,
-          lon: lng + (Math.random() - 0.5) * variation
-        };
-      }
-      return null;
+      return getStateCoordinates(state);
     }
 
     try {
+      // Se não há endereço específico, ir direto para cidade
+      if (!address || address.trim() === '') {
+        console.log(`No specific address for ${city}, ${state} - trying city geocoding`);
+        const cityParams = new URLSearchParams({
+          address: `${city}, ${state}, Brasil`,
+          city,
+          state
+        });
+        
+        const cityResponse = await fetch(`/api/geocode?${cityParams}`);
+        if (cityResponse.ok) {
+          const cityData = await cityResponse.json();
+          if (cityData.lat && cityData.lon) {
+            console.log(`City geocoding successful for ${city}, ${state}`);
+            return { lat: cityData.lat, lon: cityData.lon };
+          }
+        }
+        
+        // Se geocoding da cidade falhar, usar coordenadas do estado
+        console.log(`City geocoding failed for ${city}, ${state} - using state coordinates`);
+        return getStateCoordinates(state);
+      }
+      
       // Tentar primeiro com endereço completo
       const params = new URLSearchParams({
-        address,
+        address: `${address}, ${city}, ${state}, Brasil`,
         city,
         state
       });
@@ -163,13 +191,14 @@ export function PlacesMap() {
       if (response.ok) {
         const data = await response.json();
         if (data.lat && data.lon) {
+          console.log(`Address geocoding successful for ${address}`);
           return { lat: data.lat, lon: data.lon };
         }
       }
       
       // Se falhar, tentar só com cidade + estado
       const fallbackParams = new URLSearchParams({
-        address: city,
+        address: `${city}, ${state}, Brasil`,
         city,
         state
       });
@@ -178,15 +207,17 @@ export function PlacesMap() {
       if (fallbackResponse.ok) {
         const fallbackData = await fallbackResponse.json();
         if (fallbackData.lat && fallbackData.lon) {
+          console.log(`City fallback geocoding successful for ${city}, ${state}`);
           return { lat: fallbackData.lat, lon: fallbackData.lon };
         }
       }
       
-      console.warn(`Geocoding failed for ${address}, ${city}, ${state} - using state approximation`);
-      return null;
+      // Como último recurso, usar coordenadas do estado
+      console.warn(`All geocoding failed for ${address}, ${city}, ${state} - using state coordinates`);
+      return getStateCoordinates(state);
     } catch (error) {
       console.warn(`Geocoding error for ${address}, ${city}, ${state}:`, error);
-      return null;
+      return getStateCoordinates(state);
     }
   };
 
