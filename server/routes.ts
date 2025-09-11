@@ -850,43 +850,169 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Geocoding API endpoint (protected)
-  app.get("/api/geocode", requireAuth, async (req, res) => {
+  // Geocoding API endpoint (protected) - No cache to ensure fresh responses
+  app.get("/api/geocode", requireAuth, (req, res, next) => {
+    // Disable caching for this endpoint to prevent 304 responses
+    res.set({
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    next();
+  }, async (req, res) => {
     try {
       const { address, city, state } = req.query;
       
-      if (!address || !city || !state) {
-        return res.status(400).json({ message: "Address, city, and state are required" });
+      // More tolerant validation - require at least city OR address
+      if (!city && !state && !address) {
+        return res.status(400).json({ message: "At least city or address is required" });
       }
 
-      // Build full address string
-      const fullAddress = `${address}, ${city}, ${state}, Brasil`;
+      const addressStr = (address as string)?.trim() || '';
+      const cityStr = (city as string)?.trim() || '';
+      const stateStr = (state as string)?.trim() || '';
       
-      // Use Nominatim OpenStreetMap API
-      const encodedAddress = encodeURIComponent(fullAddress);
-      const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodedAddress}`;
-      
-      const response = await fetch(geocodeUrl, {
-        headers: {
-          'User-Agent': 'ToGo App/1.0 (contact@example.com)'
+      // Helper function to try geocoding with given URL
+      const tryGeocode = async (url: string) => {
+        const response = await fetch(url, {
+          headers: {
+            'User-Agent': 'ToGo App/1.0 (contact@example.com)'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
         }
-      });
+        
+        const data = await response.json();
+        return data.length > 0 ? data[0] : null;
+      };
       
-      if (!response.ok) {
-        console.error(`Geocoding API error: ${response.status} ${response.statusText}`);
-        return res.status(500).json({ message: "Geocoding service unavailable" });
+      let result = null;
+      let actualPrecision = 'unknown';
+      
+      // Strategy 1: Structured address query (if we have address + city + state)
+      if (addressStr && cityStr && stateStr) {
+        try {
+          const normalizedAddress = addressStr
+            .replace(new RegExp(`,\\s*${cityStr}`, 'gi'), '')
+            .replace(new RegExp(`,\\s*${stateStr}`, 'gi'), '')
+            .replace(/,\s*Brasil$/gi, '')
+            .trim();
+          
+          const params = new URLSearchParams({
+            format: 'json',
+            limit: '1',
+            street: normalizedAddress,
+            city: cityStr,
+            state: stateStr,
+            country: 'Brazil',
+            countrycodes: 'br',
+            addressdetails: '1'
+          });
+          
+          result = await tryGeocode(`https://nominatim.openstreetmap.org/search?${params}`);
+          if (result) actualPrecision = 'address';
+        } catch (error) {
+          console.warn('Structured address query failed:', error);
+        }
       }
       
-      const data = await response.json();
-      
-      if (data.length === 0) {
-        return res.json({ lat: null, lon: null });
+      // Strategy 2: Free-text address query (if structured failed and we have address)
+      if (!result && addressStr && cityStr && stateStr) {
+        try {
+          const freeTextQuery = `${addressStr}, ${cityStr}, ${stateStr}, Brazil`;
+          const params = new URLSearchParams({
+            format: 'json',
+            limit: '1',
+            q: freeTextQuery,
+            countrycodes: 'br',
+            addressdetails: '1'
+          });
+          
+          result = await tryGeocode(`https://nominatim.openstreetmap.org/search?${params}`);
+          if (result) actualPrecision = 'address';
+        } catch (error) {
+          console.warn('Free-text address query failed:', error);
+        }
       }
       
-      const result = data[0];
+      // Strategy 3: Structured city query (if address failed or not available)
+      if (!result && cityStr && stateStr) {
+        try {
+          const params = new URLSearchParams({
+            format: 'json',
+            limit: '1',
+            city: cityStr,
+            state: stateStr,
+            country: 'Brazil',
+            countrycodes: 'br',
+            addressdetails: '1'
+          });
+          
+          result = await tryGeocode(`https://nominatim.openstreetmap.org/search?${params}`);
+          if (result) actualPrecision = 'city';
+        } catch (error) {
+          console.warn('Structured city query failed:', error);
+        }
+      }
+      
+      // Strategy 4: Free-text city query (final fallback)
+      if (!result && cityStr && stateStr) {
+        try {
+          const freeTextQuery = `${cityStr}, ${stateStr}, Brazil`;
+          const params = new URLSearchParams({
+            format: 'json',
+            limit: '1',
+            q: freeTextQuery,
+            countrycodes: 'br',
+            addressdetails: '1'
+          });
+          
+          result = await tryGeocode(`https://nominatim.openstreetmap.org/search?${params}`);
+          if (result) actualPrecision = 'city';
+        } catch (error) {
+          console.warn('Free-text city query failed:', error);
+        }
+      }
+      
+      // Strategy 5: Address-only query (if no city/state but have address)
+      if (!result && addressStr && !cityStr && !stateStr) {
+        try {
+          const params = new URLSearchParams({
+            format: 'json',
+            limit: '1',
+            q: `${addressStr}, Brazil`,
+            countrycodes: 'br',
+            addressdetails: '1'
+          });
+          
+          result = await tryGeocode(`https://nominatim.openstreetmap.org/search?${params}`);
+          if (result) actualPrecision = 'address';
+        } catch (error) {
+          console.warn('Address-only query failed:', error);
+        }
+      }
+      
+      if (!result) {
+        return res.json({ lat: null, lon: null, precision: null });
+      }
+      
+      // Refine precision based on result details
+      if (result.addressdetails && result.type) {
+        if (['house', 'building', 'yes'].includes(result.type) || result.addressdetails.house_number) {
+          actualPrecision = 'address';
+        } else if (['city', 'town', 'village', 'hamlet'].includes(result.type)) {
+          actualPrecision = 'city';
+        } else if (['state', 'administrative'].includes(result.type)) {
+          actualPrecision = 'state';
+        }
+      }
+      
       res.json({
         lat: parseFloat(result.lat),
-        lon: parseFloat(result.lon)
+        lon: parseFloat(result.lon),
+        precision: actualPrecision
       });
       
     } catch (error) {

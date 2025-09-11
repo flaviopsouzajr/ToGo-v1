@@ -22,6 +22,7 @@ const markerIcon = new Icon({
 interface PlaceWithCoordinates extends PlaceWithType {
   latitude?: number;
   longitude?: number;
+  precision?: string;
 }
 
 // Função para geocodificar endereços usando Nominatim (OpenStreetMap)
@@ -153,94 +154,49 @@ export function PlacesMap() {
   const geocodeAddress = async (address: string | null, city: string, state: string) => {
     console.log(`Geocoding: "${address}" in ${city}, ${state}`);
     
-    // Se não há endereço específico, ir direto para cidade ou estado
-    if (!address || address.trim() === '') {
-      console.log(`No specific address for ${city}, ${state} - trying city geocoding first`);
-      
-      // Tentar geocoding da cidade
-      try {
-        const cityParams = new URLSearchParams({
-          address: `${city}, ${state}, Brasil`,
-          city,
-          state
-        });
-        
-        const cityResponse = await fetch(`/api/geocode?${cityParams}`);
-        if (cityResponse.ok) {
-          const cityData = await cityResponse.json();
-          if (cityData.lat && cityData.lon) {
-            console.log(`✅ City geocoding successful for ${city}, ${state}`);
-            return { lat: cityData.lat, lon: cityData.lon };
-          }
-        }
-      } catch (error) {
-        console.warn(`City geocoding error for ${city}, ${state}:`, error);
-      }
-      
-      // Se geocoding da cidade falhar, usar coordenadas fixas do estado
-      console.log(`City geocoding failed for ${city}, ${state} - using state coordinates`);
-      const stateCoords = getStateCoordinates(state);
-      if (stateCoords) {
-        console.log(`✅ Using state coordinates for ${city}, ${state}`);
-        return stateCoords;
-      }
-      
-      // Se nem estado funcionar, coordenadas padrão do Brasil
-      console.warn(`State coordinates not found for ${state} - using Brazil center`);
-      return { lat: -15.7801, lon: -47.9292 }; // Brasília
-    }
-
     try {
-      // Tentar primeiro com endereço completo
-      console.log(`Trying full address geocoding for: ${address}`);
+      // Usar a API melhorada que faz os fallbacks automaticamente
       const params = new URLSearchParams({
-        address: `${address}, ${city}, ${state}, Brasil`,
         city,
         state
       });
       
-      const response = await fetch(`/api/geocode?${params}`);
+      // Só adicionar address se existir e não estiver vazio
+      if (address && address.trim()) {
+        params.append('address', address.trim());
+      }
+      
+      const response = await fetch(`/api/geocode?${params}`, {
+        cache: 'no-store' // Prevent caching to avoid 304 responses
+      });
+      
       if (response.ok) {
         const data = await response.json();
         if (data.lat && data.lon) {
-          console.log(`✅ Address geocoding successful for ${address}`);
-          return { lat: data.lat, lon: data.lon };
+          console.log(`✅ Geocoding successful for ${address || city}: ${data.precision} precision`);
+          return { lat: data.lat, lon: data.lon, precision: data.precision };
         }
       }
       
-      // Se falhar, tentar só com cidade + estado
-      console.log(`Address geocoding failed, trying city fallback for ${city}, ${state}`);
-      const fallbackParams = new URLSearchParams({
-        address: `${city}, ${state}, Brasil`,
-        city,
-        state
-      });
+      console.warn(`Geocoding failed for ${address || city}, ${state} - using state fallback`);
       
-      const fallbackResponse = await fetch(`/api/geocode?${fallbackParams}`);
-      if (fallbackResponse.ok) {
-        const fallbackData = await fallbackResponse.json();
-        if (fallbackData.lat && fallbackData.lon) {
-          console.log(`✅ City fallback geocoding successful for ${city}, ${state}`);
-          return { lat: fallbackData.lat, lon: fallbackData.lon };
-        }
-      }
-      
-      // Como último recurso, usar coordenadas do estado
-      console.warn(`All geocoding failed for ${address}, ${city}, ${state} - using state coordinates`);
+      // Como último recurso local, usar coordenadas do estado
       const stateCoords = getStateCoordinates(state);
       if (stateCoords) {
-        console.log(`✅ Using state coordinates as final fallback`);
-        return stateCoords;
+        console.log(`✅ Using state coordinates for ${city}, ${state}`);
+        return { ...stateCoords, precision: 'state' };
       }
       
-      // Último último recurso: Brasil
-      console.warn(`Even state coordinates failed - using Brazil center`);
-      return { lat: -15.7801, lon: -47.9292 }; // Brasília
+      // Último recurso: Centro do Brasil
+      console.warn(`State coordinates not found for ${state} - using Brazil center`);
+      return { lat: -15.7801, lon: -47.9292, precision: 'country' };
       
     } catch (error) {
-      console.warn(`Geocoding error for ${address}, ${city}, ${state}:`, error);
+      console.warn(`Geocoding error for ${address || city}, ${state}:`, error);
       const stateCoords = getStateCoordinates(state);
-      return stateCoords || { lat: -15.7801, lon: -47.9292 };
+      return stateCoords 
+        ? { ...stateCoords, precision: 'state' } 
+        : { lat: -15.7801, lon: -47.9292, precision: 'country' };
     }
   };
 
@@ -262,7 +218,8 @@ export function PlacesMap() {
             processedPlaces.push({
               ...place,
               latitude: coords?.lat,
-              longitude: coords?.lon
+              longitude: coords?.lon,
+              precision: coords?.precision
             });
             
             // Delay de 500ms entre chamadas para evitar rate limit
