@@ -53,9 +53,9 @@ export function Navigation() {
               )}
               {user && (
                 <Link
-                  href="/map"
+                  href="/mapa"
                   className={`transition-colors ${
-                    location === "/map" 
+                    location === "/mapa" 
                       ? "text-togo-primary font-medium" 
                       : "text-gray-700 hover:text-primary"
                   }`}

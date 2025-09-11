@@ -31,7 +31,11 @@ function Router() {
           <PlacesPage />
         </ProtectedRoute>
       </Route>
-      <Route path="/map" component={MapPage} />
+      <Route path="/mapa">
+        <ProtectedRoute>
+          <MapPage />
+        </ProtectedRoute>
+      </Route>
       <Route path="/friends">
         <ProtectedRoute>
           <FriendsPage />
