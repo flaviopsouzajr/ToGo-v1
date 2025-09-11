@@ -231,15 +231,15 @@ function AdminPageContent() {
                   </div>
                   
                   {/* Filters Row */}
-                  <div className="flex flex-col md:flex-row md:flex-wrap items-start md:items-center gap-3 p-4 bg-gray-50 rounded-lg border">
+                  <div className="flex flex-col items-start gap-4 p-4 bg-gray-50 rounded-lg border">
                     <div className="flex items-center gap-2">
                       <Filter className="h-4 w-4 text-gray-500" />
                       <span className="text-sm font-medium text-gray-700">Filtros:</span>
                     </div>
                     
                     {/* Type Filter */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">Tipo:</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+                      <span className="text-sm text-gray-600 whitespace-nowrap">Tipo:</span>
                       <div className="flex flex-wrap gap-1">
                         <Button
                           variant={selectedTypeFilter === null ? "default" : "outline"}
@@ -274,9 +274,9 @@ function AdminPageContent() {
                     </div>
                     
                     {/* Status Filter */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">Status:</span>
-                      <div className="flex gap-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+                      <span className="text-sm text-gray-600 whitespace-nowrap">Status:</span>
+                      <div className="flex flex-wrap gap-1">
                         {[
                           { value: "all", label: "Todos" },
                           { value: "visited", label: "Visitados" },
@@ -301,14 +301,14 @@ function AdminPageContent() {
                     </div>
                     
                     {/* Rating Filter */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">Avaliação:</span>
-                      <div className="flex gap-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+                      <span className="text-sm text-gray-600 whitespace-nowrap">Avaliação:</span>
+                      <div className="flex flex-wrap gap-1">
                         <Button
                           variant={selectedRatingFilter === null ? "default" : "outline"}
                           size="sm"
                           onClick={() => setSelectedRatingFilter(null)}
-                          className={`h-7 text-xs ${
+                          className={`h-7 text-xs flex-shrink-0 ${
                             selectedRatingFilter === null
                               ? "bg-togo-light text-white hover:bg-togo-light"
                               : "hover:bg-gray-100"
@@ -317,20 +317,20 @@ function AdminPageContent() {
                         >
                           Todas
                         </Button>
-                        {[5, 4, 3, 2, 1].map((rating) => (
+                        {[5, 4, 3, 2].map((rating) => (
                           <Button
                             key={rating}
                             variant={selectedRatingFilter === rating ? "default" : "outline"}
                             size="sm"
                             onClick={() => setSelectedRatingFilter(rating)}
-                            className={`h-7 text-xs flex items-center gap-1 ${
+                            className={`h-7 text-xs flex items-center gap-1 flex-shrink-0 min-w-[50px] ${
                               selectedRatingFilter === rating
                                 ? "bg-togo-light text-white hover:bg-togo-light"
                                 : "hover:bg-gray-100"
                             }`}
                             data-testid={`filter-rating-${rating}`}
                           >
-                            <Star className="h-3 w-3" />
+                            <Star className="h-3 w-3 fill-current" />
                             {rating}+
                           </Button>
                         ))}
