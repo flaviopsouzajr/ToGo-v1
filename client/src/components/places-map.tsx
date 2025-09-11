@@ -151,15 +151,14 @@ export function PlacesMap() {
 
   // Função para fazer geocoding usando nossa API backend
   const geocodeAddress = async (address: string | null, city: string, state: string) => {
-    if (!address) {
-      // Se não tem endereço, usar coordenadas aproximadas do centro do estado
-      return getStateCoordinates(state);
-    }
-
-    try {
-      // Se não há endereço específico, ir direto para cidade
-      if (!address || address.trim() === '') {
-        console.log(`No specific address for ${city}, ${state} - trying city geocoding`);
+    console.log(`Geocoding: "${address}" in ${city}, ${state}`);
+    
+    // Se não há endereço específico, ir direto para cidade ou estado
+    if (!address || address.trim() === '') {
+      console.log(`No specific address for ${city}, ${state} - trying city geocoding first`);
+      
+      // Tentar geocoding da cidade
+      try {
         const cityParams = new URLSearchParams({
           address: `${city}, ${state}, Brasil`,
           city,
@@ -170,17 +169,30 @@ export function PlacesMap() {
         if (cityResponse.ok) {
           const cityData = await cityResponse.json();
           if (cityData.lat && cityData.lon) {
-            console.log(`City geocoding successful for ${city}, ${state}`);
+            console.log(`✅ City geocoding successful for ${city}, ${state}`);
             return { lat: cityData.lat, lon: cityData.lon };
           }
         }
-        
-        // Se geocoding da cidade falhar, usar coordenadas do estado
-        console.log(`City geocoding failed for ${city}, ${state} - using state coordinates`);
-        return getStateCoordinates(state);
+      } catch (error) {
+        console.warn(`City geocoding error for ${city}, ${state}:`, error);
       }
       
+      // Se geocoding da cidade falhar, usar coordenadas fixas do estado
+      console.log(`City geocoding failed for ${city}, ${state} - using state coordinates`);
+      const stateCoords = getStateCoordinates(state);
+      if (stateCoords) {
+        console.log(`✅ Using state coordinates for ${city}, ${state}`);
+        return stateCoords;
+      }
+      
+      // Se nem estado funcionar, coordenadas padrão do Brasil
+      console.warn(`State coordinates not found for ${state} - using Brazil center`);
+      return { lat: -15.7801, lon: -47.9292 }; // Brasília
+    }
+
+    try {
       // Tentar primeiro com endereço completo
+      console.log(`Trying full address geocoding for: ${address}`);
       const params = new URLSearchParams({
         address: `${address}, ${city}, ${state}, Brasil`,
         city,
@@ -191,12 +203,13 @@ export function PlacesMap() {
       if (response.ok) {
         const data = await response.json();
         if (data.lat && data.lon) {
-          console.log(`Address geocoding successful for ${address}`);
+          console.log(`✅ Address geocoding successful for ${address}`);
           return { lat: data.lat, lon: data.lon };
         }
       }
       
       // Se falhar, tentar só com cidade + estado
+      console.log(`Address geocoding failed, trying city fallback for ${city}, ${state}`);
       const fallbackParams = new URLSearchParams({
         address: `${city}, ${state}, Brasil`,
         city,
@@ -207,48 +220,70 @@ export function PlacesMap() {
       if (fallbackResponse.ok) {
         const fallbackData = await fallbackResponse.json();
         if (fallbackData.lat && fallbackData.lon) {
-          console.log(`City fallback geocoding successful for ${city}, ${state}`);
+          console.log(`✅ City fallback geocoding successful for ${city}, ${state}`);
           return { lat: fallbackData.lat, lon: fallbackData.lon };
         }
       }
       
       // Como último recurso, usar coordenadas do estado
       console.warn(`All geocoding failed for ${address}, ${city}, ${state} - using state coordinates`);
-      return getStateCoordinates(state);
+      const stateCoords = getStateCoordinates(state);
+      if (stateCoords) {
+        console.log(`✅ Using state coordinates as final fallback`);
+        return stateCoords;
+      }
+      
+      // Último último recurso: Brasil
+      console.warn(`Even state coordinates failed - using Brazil center`);
+      return { lat: -15.7801, lon: -47.9292 }; // Brasília
+      
     } catch (error) {
       console.warn(`Geocoding error for ${address}, ${city}, ${state}:`, error);
-      return getStateCoordinates(state);
+      const stateCoords = getStateCoordinates(state);
+      return stateCoords || { lat: -15.7801, lon: -47.9292 };
     }
   };
 
-  // Geocodificar endereços quando os lugares forem carregados
+  // Geocodificar endereços quando os lugares forem carregados (com delay para evitar rate limit)
   useEffect(() => {
     if (places.length > 0) {
       setIsGeocoding(true);
       
-      Promise.all(
-        places.map(async (place) => {
+      // Processar lugares um de cada vez com delay para evitar rate limit
+      const processPlacesSequentially = async () => {
+        const processedPlaces: PlaceWithCoordinates[] = [];
+        
+        for (let i = 0; i < places.length; i++) {
+          const place = places[i];
           try {
+            console.log(`Processing place ${i + 1}/${places.length}: ${place.name}`);
             const coords = await geocodeAddress(place.address, place.cityName, place.stateName);
             
-            return {
+            processedPlaces.push({
               ...place,
               latitude: coords?.lat,
               longitude: coords?.lon
-            };
+            });
+            
+            // Delay de 500ms entre chamadas para evitar rate limit
+            if (i < places.length - 1) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
           } catch (error) {
             console.error(`Erro ao geocodificar ${place.name}:`, error);
-            return {
+            processedPlaces.push({
               ...place,
               latitude: undefined,
               longitude: undefined
-            };
+            });
           }
-        })
-      ).then((placesWithCoordinates) => {
-        setPlacesWithCoords(placesWithCoordinates);
+        }
+        
+        setPlacesWithCoords(processedPlaces);
         setIsGeocoding(false);
-      }).catch((error) => {
+      };
+      
+      processPlacesSequentially().catch((error) => {
         console.error('Erro geral na geocodificação:', error);
         setPlacesWithCoords(places.map(place => ({
           ...place,
