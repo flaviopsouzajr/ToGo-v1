@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Navigation } from "@/components/navigation";
 import { PlaceCard } from "@/components/place-card";
@@ -28,7 +28,6 @@ function PlacesPageContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const [isFilterSticky, setIsFilterSticky] = useState(false);
-  const filterRef = useRef<HTMLDivElement>(null);
 
   const { data: places = [], isLoading } = useQuery<PlaceWithType[]>({
     queryKey: ["/api/places", filters],
@@ -82,30 +81,20 @@ function PlacesPageContent() {
     setIsModalOpen(true);
   };
 
-  // Detectar quando o filtro está fixo no topo usando posição real
+  // Detectar quando o filtro está fixo no topo
   useEffect(() => {
-    const filterElement = filterRef.current;
-    if (!filterElement) return;
-
     const handleScroll = () => {
-      const rect = filterElement.getBoundingClientRect();
-      // Obtém o offset atual baseado na tela (responsivo)
-      const computedStyle = window.getComputedStyle(filterElement);
-      const topValue = parseInt(computedStyle.top) || 0;
-      
-      // Considera sticky quando o elemento está na posição fixa dele
-      setIsFilterSticky(rect.top <= topValue + 5); // +5px margem de tolerância
+      // Considera fixo quando rolou mais de 120px (passando do header)
+      setIsFilterSticky(window.scrollY > 120);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll, { passive: true });
     
     // Verificar estado inicial
     handleScroll();
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
     };
   }, []);
 
@@ -118,11 +107,10 @@ function PlacesPageContent() {
           {/* Filters Sidebar */}
           <div className="lg:w-1/4">
             <Card 
-              ref={filterRef}
               className={`
-                sticky top-4 sm:top-6 lg:top-20 z-10
+                sticky top-20 z-30
                 transition-all duration-300 ease-in-out
-                max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] lg:max-h-[calc(100vh-6rem)]
+                max-h-[calc(100vh-6rem)]
                 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100
                 ${isFilterSticky 
                   ? 'shadow-lg border-gray-200 bg-white/95 backdrop-blur-sm' 
