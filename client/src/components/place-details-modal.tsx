@@ -148,8 +148,8 @@ export function PlaceDetailsModal({ place, isOpen, onClose }: PlaceDetailsModalP
                 </div>
               )}
 
-              {/* Roteiro (apenas para não-restaurantes) */}
-              {place.type.name !== "Restaurante" && place.itineraryFile && (
+              {/* Roteiro */}
+              {place.itineraryFile && (
                 <div>
                   <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Roteiro</h3>
                   <div className="flex items-center space-x-2">
@@ -203,21 +203,6 @@ export function PlaceDetailsModal({ place, isOpen, onClose }: PlaceDetailsModalP
                 </div>
               )}
 
-              {/* Roteiro */}
-              {place.itineraryFile && (
-                <div>
-                  <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Roteiro</h3>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-togo-primary text-togo-primary hover:bg-togo-tertiary"
-                    onClick={() => window.open(place.itineraryFile!, '_blank')}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Visualizar Roteiro
-                  </Button>
-                </div>
-              )}
             </div>
           </div>
 
