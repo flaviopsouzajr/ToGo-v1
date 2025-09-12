@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Navigation } from "@/components/navigation";
 import { PlaceCard } from "@/components/place-card";
@@ -27,6 +27,8 @@ function PlacesPageContent() {
   const [selectedPlace, setSelectedPlace] = useState<PlaceWithType | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
+  const [isFilterSticky, setIsFilterSticky] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
 
   const { data: places = [], isLoading } = useQuery<PlaceWithType[]>({
     queryKey: ["/api/places", filters],
@@ -80,6 +82,33 @@ function PlacesPageContent() {
     setIsModalOpen(true);
   };
 
+  // Detectar quando o filtro está fixo no topo usando posição real
+  useEffect(() => {
+    const filterElement = filterRef.current;
+    if (!filterElement) return;
+
+    const handleScroll = () => {
+      const rect = filterElement.getBoundingClientRect();
+      // Obtém o offset atual baseado na tela (responsivo)
+      const computedStyle = window.getComputedStyle(filterElement);
+      const topValue = parseInt(computedStyle.top) || 0;
+      
+      // Considera sticky quando o elemento está na posição fixa dele
+      setIsFilterSticky(rect.top <= topValue + 5); // +5px margem de tolerância
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll, { passive: true });
+    
+    // Verificar estado inicial
+    handleScroll();
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
@@ -88,15 +117,29 @@ function PlacesPageContent() {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
           <div className="lg:w-1/4">
-            <Card className="sticky top-24">
-              <CardHeader>
+            <Card 
+              ref={filterRef}
+              className={`
+                sticky top-4 sm:top-6 lg:top-20 z-10
+                transition-all duration-300 ease-in-out
+                max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)] lg:max-h-[calc(100vh-6rem)]
+                overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100
+                ${isFilterSticky 
+                  ? 'shadow-lg border-gray-200 bg-white/95 backdrop-blur-sm' 
+                  : 'shadow-sm bg-white border-gray-200'
+                }
+              `}>
+              <CardHeader className={`
+                ${isFilterSticky ? 'border-b border-gray-100' : ''}
+                transition-colors duration-300
+              `}>
                 <CardTitle 
                   className="flex items-center justify-between cursor-pointer"
                   onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
                 >
                   <span className="flex items-center">
                     <Filter className="mr-2 h-5 w-5" />
-                    Filtros
+                    <span className="font-semibold">Filtros</span>
                     {isFiltersExpanded ? (
                       <ChevronUp className="ml-2 h-4 w-4 text-gray-500" />
                     ) : (
@@ -111,6 +154,7 @@ function PlacesPageContent() {
                         e.stopPropagation();
                         clearFilters();
                       }}
+                      className="hover:bg-gray-100"
                     >
                       Limpar
                     </Button>
