@@ -77,7 +77,7 @@ export function PlaceFormSimple({ onSuccess, editingPlace }: PlaceFormProps) {
         petFriendly: editingPlace.petFriendly || false,
         recommendToFriends: editingPlace.recommendToFriends || false,
         isVisited: editingPlace.isVisited || false,
-        rating: editingPlace.rating ? parseFloat(editingPlace.rating) : undefined,
+        rating: editingPlace.rating ? Math.round(parseFloat(editingPlace.rating) * 2) / 2 : undefined,
         tags: editingPlace.tags || [],
       };
       
@@ -364,7 +364,7 @@ export function PlaceFormSimple({ onSuccess, editingPlace }: PlaceFormProps) {
                       size="lg"
                     />
                     <span className="text-sm text-gray-500">
-                      {field.value ? `${field.value}/5` : "Não avaliado"}
+                      {field.value ? `${(Math.round(field.value * 2) / 2).toFixed(1)}/5` : "Não avaliado"}
                     </span>
                   </div>
                 </FormControl>

@@ -75,7 +75,7 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
         mainImage: editingPlace.mainImage || "",
         hasRodizio: editingPlace.hasRodizio || false,
         isVisited: editingPlace.isVisited || false,
-        rating: editingPlace.rating ? parseFloat(editingPlace.rating) : undefined,
+        rating: editingPlace.rating ? Math.round(parseFloat(editingPlace.rating) * 2) / 2 : undefined,
         tags: editingPlace.tags || [],
       };
       
@@ -161,8 +161,7 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
         return res.json();
       } else {
         // Usar JSON normal se não há arquivo
-        const res = await apiRequest("POST", "/api/places", data);
-        return res.json();
+        return await apiRequest("/api/places", { method: "POST", body: data });
       }
     },
     onSuccess: () => {
@@ -219,8 +218,7 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
         return res.json();
       } else {
         // Usar JSON normal se não há arquivo
-        const res = await apiRequest("PUT", `/api/places/${editingPlace!.id}`, data);
-        return res.json();
+        return await apiRequest(`/api/places/${editingPlace!.id}`, { method: "PUT", body: data });
       }
     },
     onSuccess: () => {

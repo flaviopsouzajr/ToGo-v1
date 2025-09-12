@@ -183,7 +183,7 @@ export const insertPlaceSchema = createInsertSchema(places).omit({
   isClone: true,
   clonedFromUserId: true,
 }).extend({
-  rating: z.number().min(0).max(5).optional(),
+  rating: z.number().min(0).max(5).multipleOf(0.5).optional(),
 });
 
 export const insertCarouselImageSchema = createInsertSchema(carouselImages).omit({
