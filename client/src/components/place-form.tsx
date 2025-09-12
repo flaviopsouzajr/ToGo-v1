@@ -543,14 +543,11 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
               <FormItem>
                 <FormLabel>Avaliação</FormLabel>
                 <FormControl>
-                  <div className="flex items-center space-x-2">
-                    <StarRating
-                      rating={field.value || 0}
-                      interactive
-                      onRatingChange={field.onChange}
-                    />
-                    <span className="text-sm text-gray-500">Opcional</span>
-                  </div>
+                  <StarRating
+                    rating={field.value || 0}
+                    interactive
+                    onRatingChange={field.onChange}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

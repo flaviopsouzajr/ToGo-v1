@@ -356,17 +356,12 @@ export function PlaceFormSimple({ onSuccess, editingPlace }: PlaceFormProps) {
               <FormItem>
                 <FormLabel>Avaliação</FormLabel>
                 <FormControl>
-                  <div className="flex items-center space-x-2">
-                    <StarRating
-                      rating={field.value || 0}
-                      onRatingChange={field.onChange}
-                      interactive={true}
-                      size="lg"
-                    />
-                    <span className="text-sm text-gray-500">
-                      {field.value ? `${(Math.round(field.value * 2) / 2).toFixed(1)}/5` : "Não avaliado"}
-                    </span>
-                  </div>
+                  <StarRating
+                    rating={field.value || 0}
+                    onRatingChange={field.onChange}
+                    interactive={true}
+                    size="lg"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
