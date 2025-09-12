@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { StarRating } from "./star-rating";
+import { ImageCropUploader } from "@/components/ImageCropUploader";
 import { Tag } from "lucide-react";
 
 interface PlaceFormProps {
@@ -53,6 +54,8 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
       address: "",
       description: "",
       instagramProfile: "",
+      mainImage: "",
+      mainImageThumb: "",
       hasRodizio: false,
       isVisited: false,
       tags: [],
@@ -73,6 +76,7 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
         description: editingPlace.description || "",
         instagramProfile: editingPlace.instagramProfile || "",
         mainImage: editingPlace.mainImage || "",
+        mainImageThumb: editingPlace.mainImageThumb || "",
         hasRodizio: editingPlace.hasRodizio || false,
         isVisited: editingPlace.isVisited || false,
         rating: editingPlace.rating ? Math.round(parseFloat(editingPlace.rating) * 2) / 2 : undefined,
@@ -516,16 +520,23 @@ export function PlaceForm({ onSuccess, editingPlace }: PlaceFormProps) {
             name="mainImage"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>URL da Imagem Principal</FormLabel>
+                <FormLabel>Imagem Principal</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="https://exemplo.com/imagem.jpg" 
-                    {...field} 
-                    value={field.value || ""}
+                  <ImageCropUploader
+                    currentImageUrl={field.value}
+                    onImageUploaded={(standardUrl, thumbnailUrl) => {
+                      field.onChange(standardUrl);
+                      // Atualizar também o campo thumbnail
+                      if (thumbnailUrl) {
+                        form.setValue("mainImageThumb", thumbnailUrl);
+                      }
+                    }}
+                    aspectRatio={16/9}
+                    className="w-full"
                   />
                 </FormControl>
                 <FormDescription>
-                  Cole o link direto da imagem principal do lugar
+                  Adicione uma imagem do lugar. Você pode ajustar o foco após selecionar.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

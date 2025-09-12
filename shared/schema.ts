@@ -35,6 +35,7 @@ export const places = pgTable("places", {
   petFriendly: boolean("pet_friendly").default(false),
   recommendToFriends: boolean("recommend_to_friends").default(false),
   mainImage: text("main_image"),
+  mainImageThumb: text("main_image_thumb"),
   itineraryFile: text("itinerary_file"),
   rating: decimal("rating", { precision: 2, scale: 1 }),
   isVisited: boolean("is_visited").default(false),

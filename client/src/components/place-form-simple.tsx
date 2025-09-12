@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { StarRating } from "./star-rating";
+import { ImageCropUploader } from "@/components/ImageCropUploader";
 import { Tag } from "lucide-react";
 
 interface PlaceFormProps {
@@ -52,6 +53,8 @@ export function PlaceFormSimple({ onSuccess, editingPlace }: PlaceFormProps) {
       address: "",
       description: "",
       instagramProfile: "",
+      mainImage: "",
+      mainImageThumb: "",
       hasRodizio: false,
       petFriendly: false,
       recommendToFriends: false,
@@ -73,6 +76,8 @@ export function PlaceFormSimple({ onSuccess, editingPlace }: PlaceFormProps) {
         address: editingPlace.address || "",
         description: editingPlace.description || "",
         instagramProfile: editingPlace.instagramProfile || "",
+        mainImage: editingPlace.mainImage || "",
+        mainImageThumb: editingPlace.mainImageThumb || "",
         hasRodizio: editingPlace.hasRodizio || false,
         petFriendly: editingPlace.petFriendly || false,
         recommendToFriends: editingPlace.recommendToFriends || false,
@@ -329,6 +334,34 @@ export function PlaceFormSimple({ onSuccess, editingPlace }: PlaceFormProps) {
                   {...field} 
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="mainImage"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Imagem Principal</FormLabel>
+              <FormControl>
+                <ImageCropUploader
+                  currentImageUrl={field.value}
+                  onImageUploaded={(standardUrl, thumbnailUrl) => {
+                    field.onChange(standardUrl);
+                    // Atualizar também o campo thumbnail
+                    if (thumbnailUrl) {
+                      form.setValue("mainImageThumb", thumbnailUrl);
+                    }
+                  }}
+                  aspectRatio={16/9}
+                  className="w-full"
+                />
+              </FormControl>
+              <FormDescription>
+                Adicione uma imagem do lugar. Você pode ajustar o foco após selecionar.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

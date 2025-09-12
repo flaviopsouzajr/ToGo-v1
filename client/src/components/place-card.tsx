@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, CheckCircle, Instagram } from "lucide-react";
 import { StarRating } from "./star-rating";
 import { PlaceWithType } from "@shared/schema";
+import placeholderImage from "@assets/generated_images/Travel_location_placeholder_image_5440c847.png";
 
 interface PlaceCardProps {
   place: PlaceWithType;
@@ -15,18 +16,15 @@ export function PlaceCard({ place, onClick }: PlaceCardProps) {
       className="overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer"
       onClick={onClick}
     >
-      {place.mainImage && (
-        <img 
-          src={place.mainImage} 
-          alt={place.name}
-          className="w-full h-48 object-cover"
-        />
-      )}
-      {!place.mainImage && (
-        <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-          <MapPin className="w-12 h-12 text-gray-400" />
-        </div>
-      )}
+      <img 
+        src={place.mainImageThumb || place.mainImage || placeholderImage}
+        alt={place.name}
+        className="w-full h-48 object-cover"
+        onError={(e) => {
+          const target = e.target as HTMLImageElement;
+          target.src = placeholderImage;
+        }}
+      />
       
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-2">

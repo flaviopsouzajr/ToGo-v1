@@ -1183,6 +1183,124 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Place Images Upload endpoint - processes image and creates two versions
+  app.post("/api/place-images/upload", requireAuth, async (req, res) => {
+    try {
+      if (!req.body || !req.body.imageBlob) {
+        return res.status(400).json({ message: "Imagem é obrigatória" });
+      }
+
+      const sharp = (await import("sharp")).default;
+      const ObjectStorageService = (await import("./objectStorage")).ObjectStorageService;
+      const objectStorageService = new ObjectStorageService();
+      
+      // Convert base64 to buffer
+      const base64Data = req.body.imageBlob.replace(/^data:image\/\w+;base64,/, "");
+      const buffer = Buffer.from(base64Data, 'base64');
+      
+      // Create standard version (1280px wide)
+      const standardBuffer = await sharp(buffer)
+        .resize(1280, null, { 
+          withoutEnlargement: true,
+          fit: 'inside'
+        })
+        .jpeg({ quality: 85 })
+        .toBuffer();
+        
+      // Create thumbnail version (320px wide)  
+      const thumbnailBuffer = await sharp(buffer)
+        .resize(320, null, {
+          withoutEnlargement: true,
+          fit: 'inside'
+        })
+        .jpeg({ quality: 80 })
+        .toBuffer();
+
+      // Upload standard image
+      const standardUploadURL = await objectStorageService.getObjectEntityUploadURL();
+      await fetch(standardUploadURL, {
+        method: "PUT",
+        body: standardBuffer,
+        headers: {
+          "Content-Type": "image/jpeg",
+        },
+      });
+
+      // Upload thumbnail image
+      const thumbnailUploadURL = await objectStorageService.getObjectEntityUploadURL();
+      await fetch(thumbnailUploadURL, {
+        method: "PUT",
+        body: thumbnailBuffer,
+        headers: {
+          "Content-Type": "image/jpeg",
+        },
+      });
+
+      // Set ACL policies
+      const standardPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        standardUploadURL,
+        {
+          owner: req.user!.id.toString(),
+          visibility: "public"
+        }
+      );
+
+      const thumbnailPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        thumbnailUploadURL,
+        {
+          owner: req.user!.id.toString(),
+          visibility: "public"
+        }
+      );
+
+      res.json({
+        standardPath,
+        thumbnailPath
+      });
+    } catch (error) {
+      console.error("Error processing place image upload:", error);
+      res.status(500).json({ message: "Falha ao processar upload da imagem" });
+    }
+  });
+
+  // Legacy endpoint for compatibility
+  app.put("/api/place-images", requireAuth, async (req, res) => {
+    try {
+      const { imageURL, type } = req.body;
+      if (!imageURL) {
+        return res.status(400).json({ message: "URL da imagem é obrigatória" });
+      }
+
+      console.log("Received imageURL for place image:", imageURL, "type:", type);
+
+      try {
+        const ObjectStorageService = (await import("./objectStorage")).ObjectStorageService;
+        const objectStorageService = new ObjectStorageService();
+        
+        const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+          imageURL,
+          {
+            owner: req.user!.id.toString(),
+            visibility: "public"
+          }
+        );
+
+        console.log("Generated object path for place image:", objectPath);
+
+        res.json({
+          objectPath: objectPath,
+          type: type || "standard"
+        });
+      } catch (objectError) {
+        console.error("Object storage error:", objectError);
+        res.status(500).json({ message: "Falha ao processar imagem" });
+      }
+    } catch (error) {
+      console.error("Error processing place image:", error);
+      res.status(500).json({ message: "Falha ao processar imagem do lugar" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { StarRating } from "@/components/star-rating";
 import { PlaceWithType } from "@shared/schema";
 import { MapPin, Instagram, Clock, Check, X, Download, ExternalLink, FileText } from "lucide-react";
+import placeholderImage from "@assets/generated_images/Travel_location_placeholder_image_5440c847.png";
 
 interface PlaceDetailsModalProps {
   place: PlaceWithType | null;
@@ -25,18 +26,17 @@ export function PlaceDetailsModal({ place, isOpen, onClose }: PlaceDetailsModalP
 
         <div className="space-y-6">
           {/* Imagem Principal */}
-          {place.mainImage && (
-            <div className="relative rounded-lg overflow-hidden">
-              <img
-                src={place.mainImage}
-                alt={place.name}
-                className="w-full h-64 object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            </div>
-          )}
+          <div className="relative rounded-lg overflow-hidden">
+            <img
+              src={place.mainImage || placeholderImage}
+              alt={place.name}
+              className="w-full h-64 object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = placeholderImage;
+              }}
+            />
+          </div>
 
           {/* Informações Básicas */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
