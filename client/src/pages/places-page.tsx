@@ -108,9 +108,9 @@ function PlacesPageContent() {
           <div className="lg:w-1/4">
             <Card 
               className={`
-                sticky top-20 z-30
+                lg:sticky lg:top-20 z-30
                 transition-all duration-300 ease-in-out
-                max-h-[calc(100vh-6rem)]
+                lg:max-h-[calc(100vh-6rem)]
                 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100
                 ${isFilterSticky 
                   ? 'shadow-lg border-gray-200 bg-white/95 backdrop-blur-sm' 
