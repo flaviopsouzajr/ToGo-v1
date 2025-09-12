@@ -850,6 +850,84 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Brazilian address normalizer
+  const normalizeBrazilianAddress = (address: string): { primary: string; alternative: string } => {
+    if (!address?.trim()) return { primary: '', alternative: '' };
+    
+    let normalized = address.trim();
+    
+    // Remove neighborhood/district info after " - " (common in Brazilian addresses)
+    normalized = normalized.replace(/ - [^,]+,?/g, '');
+    
+    // Remove CEP (Brazilian postal code) pattern: 12345-678
+    normalized = normalized.replace(/\b\d{5}-\d{3}\b/g, '').trim();
+    
+    // Remove floor/apartment info (case insensitive)
+    const floorTerms = ['térreo', 'terreo', 'sala', 'bloco', 'loja', 'apto', 'apartamento', 'andar', 'pavimento', 'piso'];
+    const floorPattern = new RegExp(`\\b(${floorTerms.join('|')})\\s*\\w*\\b`, 'gi');
+    normalized = normalized.replace(floorPattern, '').trim();
+    
+    // Remove "s/n" (sem número - without number)
+    normalized = normalized.replace(/\bs\/n\b/gi, '').trim();
+    
+    // Clean up extra commas and spaces
+    normalized = normalized.replace(/,+/g, ',').replace(/\s+/g, ' ').replace(/^,|,$/, '').trim();
+    
+    // Expand common Brazilian abbreviations
+    const abbreviations = {
+      'R\\.': 'Rua',
+      'Av\\.': 'Avenida', 
+      'Pça\\.?': 'Praça',
+      'Rod\\.': 'Rodovia',
+      'Estr\\.': 'Estrada',
+      'Prof\\.': 'Professor',
+      'Dr\\.': 'Doutor',
+      'Dra\\.': 'Doutora',
+      'Sta\\.': 'Santa',
+      'Sto\\.': 'Santo',
+      'Sra\\.': 'Senhora',
+      'Sr\\.': 'Senhor',
+      'Dep\\.': 'Deputado',
+      'Pres\\.': 'Presidente',
+      'Gal\\.': 'General',
+      'Cel\\.': 'Coronel',
+      'Cap\\.': 'Capitão',
+      'Mal\\.': 'Marechal'
+    };
+    
+    let primary = normalized;
+    for (const [abbrev, expanded] of Object.entries(abbreviations)) {
+      const regex = new RegExp(`\\b${abbrev}\\s*`, 'gi');
+      primary = primary.replace(regex, `${expanded} `);
+    }
+    
+    // Clean up extra spaces
+    primary = primary.replace(/\s+/g, ' ').trim();
+    
+    // Create alternative version with number first (common variation)
+    let alternative = primary;
+    const numberMatch = primary.match(/^(.*?)\s*,?\s*(\d+)(.*)$/);
+    if (numberMatch && numberMatch[2]) {
+      const [, street, number, rest] = numberMatch;
+      alternative = `${number} ${street}${rest}`.replace(/\s+/g, ' ').trim();
+    }
+    
+    return { primary, alternative };
+  };
+
+  // Brazilian landmark aliases for better geocoding
+  const landmarkAliases: Record<string, string> = {
+    'cristo redentor': 'Cristo Redentor, Corcovado, Rio de Janeiro',
+    'parque ibirapuera': 'Parque do Ibirapuera, São Paulo',
+    'parque do ibirapuera': 'Parque do Ibirapuera, São Paulo',
+    'masp': 'Museu de Arte de São Paulo, MASP, Avenida Paulista, São Paulo',
+    'marco zero': 'Marco Zero, Recife, Pernambuco',
+    'pelourinho': 'Centro Histórico de Salvador, Pelourinho, Salvador, Bahia',
+    'lençóis maranhenses': 'Lençóis Maranhenses, Santo Amaro do Maranhão, Maranhão',
+    'cataratas do iguaçu': 'Cataratas do Iguaçu, Foz do Iguaçu, Paraná',
+    'pão de açúcar': 'Pão de Açúcar, Urca, Rio de Janeiro'
+  };
+
   // Geocoding API endpoint (protected) - No cache to ensure fresh responses
   app.get("/api/geocode", requireAuth, (req, res, next) => {
     // Disable caching for this endpoint to prevent 304 responses
@@ -861,7 +939,7 @@ export function registerRoutes(app: Express): Server {
     next();
   }, async (req, res) => {
     try {
-      const { address, city, state } = req.query;
+      const { address, city, state, placeName } = req.query;
       
       // More tolerant validation - require at least city OR address
       if (!city && !state && !address) {
@@ -871,12 +949,14 @@ export function registerRoutes(app: Express): Server {
       const addressStr = (address as string)?.trim() || '';
       const cityStr = (city as string)?.trim() || '';
       const stateStr = (state as string)?.trim() || '';
+      const placeNameStr = (placeName as string)?.trim() || '';
       
       // Helper function to try geocoding with given URL
       const tryGeocode = async (url: string) => {
         const response = await fetch(url, {
           headers: {
-            'User-Agent': 'ToGo App/1.0 (contact@example.com)'
+            'User-Agent': 'ToGo App/1.0 (flavio@togobrazil.com)',
+            'Accept-Language': 'pt-BR,pt,en'
           }
         });
         
@@ -888,56 +968,136 @@ export function registerRoutes(app: Express): Server {
         return data.length > 0 ? data[0] : null;
       };
       
+      // Determine precision from result details
+      const getPrecisionFromResult = (result: any): string => {
+        if (!result) return 'unknown';
+        
+        const { type, class: resultClass, addresstype, addressdetails } = result;
+        
+        // Address-level precision
+        if (addresstype === 'house' || addressdetails?.house_number || 
+            (type === 'building' && resultClass === 'building')) {
+          return 'address';
+        }
+        
+        // POI/landmark precision
+        if (resultClass && ['amenity', 'tourism', 'historic', 'leisure', 
+            'natural', 'place_of_worship', 'attraction', 'park', 'monument'].includes(resultClass)) {
+          return 'poi';
+        }
+        
+        // Street-level precision
+        if (type === 'road' || resultClass === 'highway') {
+          return 'street';
+        }
+        
+        // City-level precision
+        if (['city', 'town', 'village', 'hamlet', 'suburb'].includes(type)) {
+          return 'city';
+        }
+        
+        // State-level precision
+        if (['state', 'administrative'].includes(type) || 
+            (resultClass === 'boundary' && type === 'administrative')) {
+          return 'state';
+        }
+        
+        return 'city'; // Default fallback
+      };
+      
       let result = null;
       let actualPrecision = 'unknown';
+      let usedStrategy = '';
       
-      // Strategy 1: Structured address query (if we have address + city + state)
+      // Strategy 1: Normalized structured address query
       if (addressStr && cityStr && stateStr) {
         try {
-          const normalizedAddress = addressStr
-            .replace(new RegExp(`,\\s*${cityStr}`, 'gi'), '')
-            .replace(new RegExp(`,\\s*${stateStr}`, 'gi'), '')
-            .replace(/,\s*Brasil$/gi, '')
-            .trim();
+          const normalized = normalizeBrazilianAddress(addressStr);
           
+          // Try primary normalized version
           const params = new URLSearchParams({
             format: 'json',
             limit: '1',
-            street: normalizedAddress,
+            street: normalized.primary,
             city: cityStr,
             state: stateStr,
             country: 'Brazil',
             countrycodes: 'br',
-            addressdetails: '1'
+            addressdetails: '1',
+            extratags: '1',
+            namedetails: '1'
           });
           
           result = await tryGeocode(`https://nominatim.openstreetmap.org/search?${params}`);
-          if (result) actualPrecision = 'address';
+          
+          // Try alternative version if primary didn't work well
+          if (!result && normalized.alternative !== normalized.primary) {
+            params.set('street', normalized.alternative);
+            result = await tryGeocode(`https://nominatim.openstreetmap.org/search?${params}`);
+          }
+          
+          if (result) {
+            actualPrecision = getPrecisionFromResult(result);
+            usedStrategy = 'structured-normalized';
+          }
         } catch (error) {
-          console.warn('Structured address query failed:', error);
+          console.warn('Normalized structured address query failed:', error);
         }
       }
       
-      // Strategy 2: Free-text address query (if structured failed and we have address)
+      // Strategy 2: Free-text normalized address query
       if (!result && addressStr && cityStr && stateStr) {
         try {
-          const freeTextQuery = `${addressStr}, ${cityStr}, ${stateStr}, Brazil`;
+          const normalized = normalizeBrazilianAddress(addressStr);
+          const freeTextQuery = `${normalized.primary}, ${cityStr}, ${stateStr}, Brasil`;
+          
           const params = new URLSearchParams({
             format: 'json',
             limit: '1',
             q: freeTextQuery,
             countrycodes: 'br',
-            addressdetails: '1'
+            addressdetails: '1',
+            extratags: '1'
           });
           
           result = await tryGeocode(`https://nominatim.openstreetmap.org/search?${params}`);
-          if (result) actualPrecision = 'address';
+          if (result) {
+            actualPrecision = getPrecisionFromResult(result);
+            usedStrategy = 'freetext-normalized';
+          }
         } catch (error) {
-          console.warn('Free-text address query failed:', error);
+          console.warn('Free-text normalized address query failed:', error);
         }
       }
       
-      // Strategy 3: Structured city query (if address failed or not available)
+      // Strategy 3: Landmark/place name fallback (for POIs without specific addresses)
+      if (!result && placeNameStr && cityStr && stateStr) {
+        try {
+          // Check landmark aliases first
+          const lowerPlaceName = placeNameStr.toLowerCase();
+          const aliasQuery = landmarkAliases[lowerPlaceName];
+          const searchQuery = aliasQuery || `${placeNameStr}, ${cityStr}, ${stateStr}, Brasil`;
+          
+          const params = new URLSearchParams({
+            format: 'json',
+            limit: '1',
+            q: searchQuery,
+            countrycodes: 'br',
+            addressdetails: '1',
+            extratags: '1'
+          });
+          
+          result = await tryGeocode(`https://nominatim.openstreetmap.org/search?${params}`);
+          if (result) {
+            actualPrecision = getPrecisionFromResult(result);
+            usedStrategy = aliasQuery ? 'landmark-alias' : 'landmark-search';
+          }
+        } catch (error) {
+          console.warn('Landmark query failed:', error);
+        }
+      }
+      
+      // Strategy 4: Structured city query
       if (!result && cityStr && stateStr) {
         try {
           const params = new URLSearchParams({
@@ -951,16 +1111,19 @@ export function registerRoutes(app: Express): Server {
           });
           
           result = await tryGeocode(`https://nominatim.openstreetmap.org/search?${params}`);
-          if (result) actualPrecision = 'city';
+          if (result) {
+            actualPrecision = getPrecisionFromResult(result);
+            usedStrategy = 'structured-city';
+          }
         } catch (error) {
           console.warn('Structured city query failed:', error);
         }
       }
       
-      // Strategy 4: Free-text city query (final fallback)
+      // Strategy 5: Free-text city query (final fallback)
       if (!result && cityStr && stateStr) {
         try {
-          const freeTextQuery = `${cityStr}, ${stateStr}, Brazil`;
+          const freeTextQuery = `${cityStr}, ${stateStr}, Brasil`;
           const params = new URLSearchParams({
             format: 'json',
             limit: '1',
@@ -970,25 +1133,32 @@ export function registerRoutes(app: Express): Server {
           });
           
           result = await tryGeocode(`https://nominatim.openstreetmap.org/search?${params}`);
-          if (result) actualPrecision = 'city';
+          if (result) {
+            actualPrecision = getPrecisionFromResult(result);
+            usedStrategy = 'freetext-city';
+          }
         } catch (error) {
           console.warn('Free-text city query failed:', error);
         }
       }
       
-      // Strategy 5: Address-only query (if no city/state but have address)
+      // Strategy 6: Address-only query (if no city/state but have address)
       if (!result && addressStr && !cityStr && !stateStr) {
         try {
+          const normalized = normalizeBrazilianAddress(addressStr);
           const params = new URLSearchParams({
             format: 'json',
             limit: '1',
-            q: `${addressStr}, Brazil`,
+            q: `${normalized.primary}, Brasil`,
             countrycodes: 'br',
             addressdetails: '1'
           });
           
           result = await tryGeocode(`https://nominatim.openstreetmap.org/search?${params}`);
-          if (result) actualPrecision = 'address';
+          if (result) {
+            actualPrecision = getPrecisionFromResult(result);
+            usedStrategy = 'address-only';
+          }
         } catch (error) {
           console.warn('Address-only query failed:', error);
         }
@@ -998,16 +1168,8 @@ export function registerRoutes(app: Express): Server {
         return res.json({ lat: null, lon: null, precision: null });
       }
       
-      // Refine precision based on result details
-      if (result.addressdetails && result.type) {
-        if (['house', 'building', 'yes'].includes(result.type) || result.addressdetails.house_number) {
-          actualPrecision = 'address';
-        } else if (['city', 'town', 'village', 'hamlet'].includes(result.type)) {
-          actualPrecision = 'city';
-        } else if (['state', 'administrative'].includes(result.type)) {
-          actualPrecision = 'state';
-        }
-      }
+      // Log successful geocoding for debugging
+      console.log(`✅ Geocoded successfully: ${usedStrategy} -> ${actualPrecision} precision`);
       
       res.json({
         lat: parseFloat(result.lat),

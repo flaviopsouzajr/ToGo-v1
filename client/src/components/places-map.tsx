@@ -151,8 +151,8 @@ export function PlacesMap() {
   };
 
   // Função para fazer geocoding usando nossa API backend
-  const geocodeAddress = async (address: string | null, city: string, state: string) => {
-    console.log(`Geocoding: "${address}" in ${city}, ${state}`);
+  const geocodeAddress = async (address: string | null, city: string, state: string, placeName?: string) => {
+    console.log(`Geocoding: "${address}" in ${city}, ${state}${placeName ? ` (place: ${placeName})` : ''}`);
     
     try {
       // Usar a API melhorada que faz os fallbacks automaticamente
@@ -164,6 +164,11 @@ export function PlacesMap() {
       // Só adicionar address se existir e não estiver vazio
       if (address && address.trim()) {
         params.append('address', address.trim());
+      }
+      
+      // Adicionar nome do lugar para fallback de landmarks
+      if (placeName && placeName.trim()) {
+        params.append('placeName', placeName.trim());
       }
       
       const response = await fetch(`/api/geocode?${params}`, {
@@ -213,7 +218,7 @@ export function PlacesMap() {
           const place = places[i];
           try {
             console.log(`Processing place ${i + 1}/${places.length}: ${place.name}`);
-            const coords = await geocodeAddress(place.address, place.cityName, place.stateName);
+            const coords = await geocodeAddress(place.address, place.cityName, place.stateName, place.name);
             
             processedPlaces.push({
               ...place,
