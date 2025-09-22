@@ -43,7 +43,6 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-      
       {/* Hero Section */}
       <div 
         className="relative h-96 md:h-[500px] bg-cover bg-center bg-no-repeat"
@@ -88,7 +87,6 @@ export default function HomePage() {
           </div>
         </div>
       </div>
-      
       {/* Image Carousel */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <ImageCarousel />
@@ -179,7 +177,7 @@ export default function HomePage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">Sobre o ToGo</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl max-w-3xl mx-auto text-[#4b5563] bg-[transparent]">
             Sua plataforma completa para descobrir, catalogar e compartilhar os melhores lugares para visitar.
           </p>
         </div>
