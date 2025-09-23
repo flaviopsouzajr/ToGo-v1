@@ -11,12 +11,6 @@ export default function AboutPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-12 h-12 bg-togo-primary rounded-xl flex items-center justify-center">
-              <MapPin className="text-white w-7 h-7" />
-            </div>
-            <span className="text-4xl font-bold text-gray-900">ToGo</span>
-          </div>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
             Sobre o Sistema
           </h1>

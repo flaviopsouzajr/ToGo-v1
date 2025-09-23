@@ -12,7 +12,9 @@ import { PlaceWithType } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function HomePage() {
-  const [selectedPlace, setSelectedPlace] = useState<PlaceWithType | null>(null);
+  const [selectedPlace, setSelectedPlace] = useState<PlaceWithType | null>(
+    null,
+  );
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const { user } = useAuth();
 
@@ -39,12 +41,11 @@ export default function HomePage() {
     setIsDetailsModalOpen(true);
   };
 
-  
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       {/* Hero Section */}
-      <div 
+      <div
         className="relative h-96 md:h-[500px] bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url('https://images.unsplash.com/photo-1483729558449-99ef09a8c325?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')`,
@@ -59,9 +60,14 @@ export default function HomePage() {
                   Bem-vindo, {user.name || user.username}!
                 </h1>
                 <p className="text-xl md:text-2xl mb-8 text-gray-200">
-                  Gerencie seus lugares favoritos e descubra novas experiências únicas.
+                  Gerencie seus lugares favoritos e descubra novas experiências
+                  únicas.
                 </p>
-                <Button asChild size="lg" className="bg-togo-primary hover:bg-togo-secondary">
+                <Button
+                  asChild
+                  size="lg"
+                  className="bg-togo-primary hover:bg-togo-secondary"
+                >
                   <Link href="/places">
                     Meus Lugares
                     <ArrowRight className="ml-2 h-5 w-5" />
@@ -74,9 +80,15 @@ export default function HomePage() {
                   Bem-vindo ao ToGo
                 </h1>
                 <p className="text-xl md:text-2xl mb-8 text-gray-200">
-                  O sistema para organizar e planejar seus lugares favoritos para visitar. Faça login para cadastrar, gerenciar e explorar seus próprios registros.
+                  O sistema para organizar e planejar seus lugares favoritos
+                  para visitar. Faça login para cadastrar, gerenciar e explorar
+                  seus próprios registros.
                 </p>
-                <Button asChild size="lg" className="bg-togo-primary hover:bg-togo-secondary">
+                <Button
+                  asChild
+                  size="lg"
+                  className="bg-togo-primary hover:bg-togo-secondary"
+                >
                   <Link href="/auth">
                     Fazer Login
                     <LogIn className="ml-2 h-5 w-5" />
@@ -102,7 +114,7 @@ export default function HomePage() {
               Os lugares que você cadastrou com as melhores avaliações
             </p>
           </div>
-          
+
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[...Array(3)].map((_, i) => (
@@ -117,9 +129,9 @@ export default function HomePage() {
           ) : featuredPlaces.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {featuredPlaces.map((place) => (
-                <PlaceCard 
-                  key={place.id} 
-                  place={place} 
+                <PlaceCard
+                  key={place.id}
+                  place={place}
                   onClick={() => handlePlaceClick(place)}
                 />
               ))}
@@ -134,9 +146,7 @@ export default function HomePage() {
                 Comece cadastrando seu primeiro lugar incrível!
               </p>
               <Button asChild className="mt-4">
-                <Link href="/places">
-                  Cadastrar Lugar
-                </Link>
+                <Link href="/places">Cadastrar Lugar</Link>
               </Button>
             </div>
           )}
@@ -147,8 +157,12 @@ export default function HomePage() {
         <div className="bg-togo-lightest py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Seus Números</h2>
-              <p className="text-lg text-gray-600">Acompanhe seu progresso de descobertas</p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                Seus Números
+              </h2>
+              <p className="text-lg text-gray-600">
+                Acompanhe seu progresso de descobertas
+              </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center max-w-3xl mx-auto">
               <div>
@@ -176,8 +190,10 @@ export default function HomePage() {
       {/* Features */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4 text-[#111827] bg-[transparent]">ToGo, cada lugar se torna uma nova aventura esperando para ser explorada.</h2>
-          
+          <h2 className="text-4xl font-bold mb-4 text-[#111827] bg-[transparent]">
+            ToGo, cada lugar se torna uma nova aventura esperando para ser
+            explorada.
+          </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
@@ -185,9 +201,12 @@ export default function HomePage() {
             <div className="w-16 h-16 bg-togo-primary rounded-xl flex items-center justify-center mx-auto mb-4">
               <MapPin className="text-white w-8 h-8" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Descubra</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              Descubra
+            </h3>
             <p className="text-gray-600">
-              Encontre os melhores restaurantes, pontos turísticos e experiências únicas.
+              Encontre os melhores restaurantes, pontos turísticos e
+              experiências únicas.
             </p>
           </div>
 
@@ -205,7 +224,9 @@ export default function HomePage() {
             <div className="w-16 h-16 bg-togo-light rounded-xl flex items-center justify-center mx-auto mb-4">
               <Route className="text-white w-8 h-8" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Planeje</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              Planeje
+            </h3>
             <p className="text-gray-600">
               Organize seus roteiros e acompanhe seus lugares visitados.
             </p>
@@ -224,11 +245,10 @@ export default function HomePage() {
                 <span className="text-2xl font-bold">ToGo</span>
               </div>
               <p className="text-gray-400 mb-6 max-w-md">
-                Sua plataforma completa para descobrir e catalogar os melhores lugares para visitar em todo o Brasil.
+                Sua plataforma completa para descobrir e catalogar os melhores
+                lugares para visitar em todo o Brasil.
               </p>
             </div>
-
-            
 
             <div>
               <h4 className="font-semibold mb-4">Contato</h4>
