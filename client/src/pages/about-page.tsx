@@ -17,7 +17,7 @@ export default function AboutPage() {
         <Card className="mb-12">
           <CardContent className="p-8 md:p-12">
             <div className="prose prose-lg max-w-none text-center">
-              <p className="text-lg leading-relaxed text-gray-700 mb-0">
+              <p className="text-lg leading-relaxed text-gray-700 mb-0 text-justify">
                 Este sistema foi desenvolvido para facilitar o cadastro, organização e visualização de lugares para visitar, sejam restaurantes, cidades, pontos turísticos ou eventos. Com ele, é possível gerenciar de forma prática informações detalhadas de cada lugar, como localização, categorias, avaliação, status de visita, além de visualizar imagens e roteiros associados. Nosso objetivo é tornar o planejamento de viagens, passeios ou experiências gastronômicas mais simples, visual e organizado.
               </p>
             </div>
