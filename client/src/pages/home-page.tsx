@@ -230,6 +230,17 @@ export default function HomePage() {
             </p>
           </div>
         </div>
+
+        {/* Stats Section */}
+        <div className="bg-togo-lightest rounded-xl p-8 mt-12 text-center">
+          <h3 className="text-2xl font-bold text-togo-primary mb-4">
+            Descubra, Explore e Compartilhe
+          </h3>
+          <p className="text-gray-700 max-w-2xl mx-auto">
+            Junte-se a uma comunidade que valoriza experiências únicas e descobertas incríveis. 
+            Com o ToGo, cada lugar se torna uma nova aventura esperando para ser explorada.
+          </p>
+        </div>
       </div>
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-16">
