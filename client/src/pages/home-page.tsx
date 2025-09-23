@@ -250,7 +250,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="md:text-right">
+            <div className="md:text-right text-justify">
               <h4 className="font-semibold mb-4">Contato</h4>
               <ul className="space-y-2 text-gray-400">
                 <li>contato@togo.com.br</li>
