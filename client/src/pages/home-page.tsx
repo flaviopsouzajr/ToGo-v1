@@ -215,9 +215,7 @@ export default function HomePage() {
               <Star className="text-white w-8 h-8" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Avalie</h3>
-            <p className="text-gray-600">
-              Compartilhe suas experiências e ajude outros viajantes.
-            </p>
+            <p className="text-gray-600">Compartilhe suas experiências e ajude outros goers.</p>
           </div>
 
           <div className="text-center">
