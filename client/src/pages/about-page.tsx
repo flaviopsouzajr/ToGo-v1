@@ -10,7 +10,7 @@ export default function AboutPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Sobre </h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Sobre</h1>
         </div>
 
         {/* Main Content */}
