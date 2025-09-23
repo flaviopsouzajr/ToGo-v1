@@ -84,26 +84,7 @@ export default function AboutPage() {
               </p>
             </div>
 
-            <div>
-              <h4 className="font-semibold mb-4">Links Úteis</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/" className="hover:text-white transition-colors">
-                    Início
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/places" className="hover:text-white transition-colors">
-                    Lugares
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/about" className="hover:text-white transition-colors">
-                    Sobre
-                  </Link>
-                </li>
-              </ul>
-            </div>
+            
 
             <div>
               <h4 className="font-semibold mb-4">Contato</h4>
