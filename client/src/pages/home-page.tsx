@@ -225,7 +225,7 @@ export default function HomePage() {
         {/* Stats Section */}
         <div className="bg-togo-lightest rounded-xl p-8 mt-12 text-center">
           <h3 className="text-2xl font-bold text-togo-primary mb-4">Explore Novos Lugares e Compartilhe Momentos</h3>
-          <p className="text-gray-700 max-w-2xl mx-auto">Junte-se à comunidade ToGo e transforme cada lugar em uma nova aventura para explorar com seus goers.</p>
+          <p className="text-gray-700 max-w-2xl mx-auto">Junte-se à comunidade ToGo e transforme cada lugar em uma nova aventura para explorar e compartilhar com seus goers.</p>
         </div>
       </div>
       {/* Footer */}
