@@ -204,10 +204,7 @@ export default function HomePage() {
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
               Descubra
             </h3>
-            <p className="text-gray-600">
-              Encontre os melhores restaurantes, pontos turísticos e
-              experiências únicas.
-            </p>
+            <p className="text-gray-600">Encontre  restaurantes, pontos turísticos e experiências que valem a visita.</p>
           </div>
 
           <div className="text-center">
