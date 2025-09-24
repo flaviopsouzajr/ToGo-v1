@@ -217,9 +217,7 @@ export default function HomePage() {
             <div className="w-16 h-16 bg-togo-light rounded-xl flex items-center justify-center mx-auto mb-4">
               <Route className="text-white w-8 h-8" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Planeje
-            </h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Gerencie</h3>
             <p className="text-gray-600">Organize suas lista de lugares e acompanhe suas visitas.</p>
           </div>
         </div>
