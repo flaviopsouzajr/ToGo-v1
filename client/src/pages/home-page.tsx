@@ -222,9 +222,7 @@ export default function HomePage() {
             <h3 className="text-xl font-semibold text-gray-900 mb-2">
               Planeje
             </h3>
-            <p className="text-gray-600">
-              Organize seus roteiros e acompanhe seus lugares visitados.
-            </p>
+            <p className="text-gray-600">Organize suas lista de lugares e acompanhe suas visitas.</p>
           </div>
         </div>
 
