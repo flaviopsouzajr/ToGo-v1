@@ -209,7 +209,7 @@ export default function HomePage() {
             <div className="w-16 h-16 bg-togo-secondary rounded-xl flex items-center justify-center mx-auto mb-4">
               <Star className="text-white w-8 h-8" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Avalie</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Avalie & Compartilhe</h3>
             <p className="text-gray-600">Dê sua opinião e ajude outos goers a decidirem onde ir.</p>
           </div>
 
