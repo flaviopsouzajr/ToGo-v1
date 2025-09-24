@@ -201,9 +201,7 @@ export default function HomePage() {
             <div className="w-16 h-16 bg-togo-primary rounded-xl flex items-center justify-center mx-auto mb-4">
               <MapPin className="text-white w-8 h-8" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Descubra
-            </h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Explore</h3>
             <p className="text-gray-600">Encontre  restaurantes, pontos turísticos e experiências que valem a visita.</p>
           </div>
 
