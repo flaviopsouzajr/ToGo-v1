@@ -24,38 +24,7 @@ export default function AboutPage() {
           </CardContent>
         </Card>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-togo-primary rounded-xl flex items-center justify-center mx-auto mb-4">
-              <MapPin className="text-white w-8 h-8" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Organize</h3>
-            <p className="text-gray-600">
-              Cadastre e organize seus lugares favoritos de forma simples e intuitiva.
-            </p>
-          </div>
-
-          <div className="text-center">
-            <div className="w-16 h-16 bg-togo-secondary rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Star className="text-white w-8 h-8" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Avalie</h3>
-            <p className="text-gray-600">
-              Registre suas experiências e avaliações para compartilhar com outros usuários.
-            </p>
-          </div>
-
-          <div className="text-center">
-            <div className="w-16 h-16 bg-togo-light rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Route className="text-white w-8 h-8" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Planeje</h3>
-            <p className="text-gray-600">
-              Crie roteiros personalizados e acompanhe o status dos lugares visitados.
-            </p>
-          </div>
-        </div>
+        
       </div>
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-16">
