@@ -239,10 +239,7 @@ export default function HomePage() {
                 </div>
                 <span className="text-2xl font-bold">ToGo</span>
               </div>
-              <p className="text-gray-400 mb-6 max-w-md">
-                Sua plataforma completa para descobrir e catalogar os melhores
-                lugares para visitar em todo o Brasil.
-              </p>
+              <p className="text-gray-400 mb-6 max-w-md">Descubra, registre e compartilhe os lugares mais incríveis para visitar em todo o Brasil.</p>
             </div>
 
             <div className="md:text-right text-justify">
