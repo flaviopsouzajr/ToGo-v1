@@ -1,6 +1,7 @@
 import React from 'react';
 import { PlacesMap } from '@/components/places-map';
 import { Navigation } from '@/components/navigation';
+import { Footer } from '@/components/footer';
 import { ProtectedRoute } from '@/lib/protected-route';
 
 function MapPageContent() {
@@ -21,6 +22,7 @@ function MapPageContent() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

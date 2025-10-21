@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Navigation } from "@/components/navigation";
+import { Footer } from "@/components/footer";
 import { PlaceCard } from "@/components/place-card";
 import { PlaceDetailsModal } from "@/components/place-details-modal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -357,6 +358,7 @@ function PlacesPageContent() {
           setSelectedPlace(null);
         }}
       />
+      <Footer />
     </div>
   );
 }
