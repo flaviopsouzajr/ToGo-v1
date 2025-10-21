@@ -47,9 +47,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
     },
     onError: (error: Error) => {
+      // Convert technical errors to user-friendly messages
+      let userMessage = "Não foi possível realizar o login. Tente novamente.";
+      
+      // Check for specific error types
+      if (error.message.includes("401") || error.message.includes("Unauthorized") || 
+          error.message.includes("Invalid credentials") || error.message.includes("incorrect")) {
+        userMessage = "Usuário ou senha incorretos. Verifique suas informações e tente novamente.";
+      } else if (error.message.includes("network") || error.message.includes("fetch") || 
+                 error.message.includes("Failed to fetch")) {
+        userMessage = "Não foi possível conectar. Tente novamente em instantes.";
+      }
+      
       toast({
         title: "Erro no login",
-        description: error.message,
+        description: userMessage,
         variant: "destructive",
       });
     },

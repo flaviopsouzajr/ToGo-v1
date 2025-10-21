@@ -27,6 +27,13 @@ export default function AuthPage() {
     }
   }, [user, setLocation]);
 
+  // Clear password field on login error
+  useEffect(() => {
+    if (loginMutation.isError) {
+      loginForm.setValue("password", "");
+    }
+  }, [loginMutation.isError]);
+
   const loginForm = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
