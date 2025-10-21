@@ -1,0 +1,82 @@
+O sistema precisa ser totalmente responsivo, adaptando-se corretamente a diferentes tamanhos de tela (celulares, tablets, notebooks e desktops).
+Atualmente, algumas seções podem perder alinhamento, cortar conteúdo ou não se ajustar de forma fluida em dispositivos menores.
+Esta melhoria visa garantir uma experiência consistente e fluida em todos os dispositivos, sem comprometer o layout nem as funcionalidades existentes.
+
+✅ Especificações Técnicas:
+1. Layout Responsivo Global
+
+Aplicar um sistema de grid fluido (como flexbox ou CSS grid) para organizar os principais componentes.
+
+Garantir que todos os containers usem largura máxima de 100% e margens automáticas para centralização.
+
+Definir breakpoints para telas:
+
+📱 Pequenas (mobile): até 600px
+
+💻 Médias (tablet): entre 601px e 1024px
+
+🖥️ Grandes (desktop): acima de 1025px
+
+2. Componentes Principais
+
+Cabeçalho e Menu:
+
+Converter em menu “hambúrguer” em telas pequenas.
+
+Garantir que o logotipo e botões fiquem acessíveis e centralizados.
+
+Cards de Lugares:
+
+Em telas grandes: até 4 colunas.
+
+Em tablets: 2 colunas.
+
+Em celulares: 1 card por linha.
+
+Imagens dos cards devem se redimensionar automaticamente mantendo proporção.
+
+Modais:
+
+Centralizar vertical e horizontalmente.
+
+Garantir rolagem interna quando o conteúdo for maior que a tela.
+
+Filtros e Botões:
+
+Converter filtros longos em menus suspensos (“dropdown”) ou chips roláveis no mobile.
+
+Garantir espaçamento mínimo para cliques em telas touch.
+
+3. Rodapé
+
+O rodapé deve permanecer visível e centralizado.
+
+Em telas pequenas, os elementos devem se empilhar verticalmente.
+
+Em telas grandes, manter layout horizontal.
+
+4. Textos e Fontes
+
+Utilizar fontes responsivas (clamp(), vw, ou variáveis CSS).
+
+Garantir contraste e espaçamento adequados em todas as resoluções.
+
+5. Performance e Fluidez
+
+Evitar rolagem horizontal em qualquer página.
+
+As transições entre seções devem ser suaves (scroll-behavior: smooth).
+
+Garantir que imagens otimizadas sejam carregadas de acordo com o tamanho da tela (srcset ou responsive image loader).
+
+⚠️ Restrições:
+
+Não modificar a lógica do sistema, apenas a estrutura visual e responsiva.
+
+Manter todas as funcionalidades já existentes intactas.
+
+Aplicar as melhorias de responsividade de forma global, mas respeitando o estilo visual atual do ToGo.
+
+✅ Resumo Simplificado:
+
+Ajustar e otimizar a responsividade do sistema ToGo para que todas as páginas, componentes e modais se adaptem automaticamente a telas pequenas, médias e grandes, garantindo fluidez, legibilidade e boa usabilidade em qualquer dispositivo — sem cortar ou distorcer conteúdo.
