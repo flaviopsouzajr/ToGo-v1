@@ -1,0 +1,55 @@
+Garantir que o nome de usuário no sistema ToGo seja único, impedindo duplicidades no cadastro, e implementar uma verificação automática durante o registro, com sugestões alternativas quando o nome escolhido já estiver em uso.
+
+🧩 Instruções para Implementação:
+
+Banco de Dados
+
+Adicionar uma restrição de unicidade no campo de nome de usuário (username) na tabela de usuários.
+
+Essa restrição deve impedir o registro de nomes duplicados, mesmo em tentativas simultâneas.
+
+Validação no Backend
+
+No endpoint de registro de novos usuários, incluir uma verificação prévia para confirmar se o nome de usuário informado já existe.
+
+Caso o nome esteja em uso, retornar uma resposta clara informando que ele não está disponível.
+
+Criar um endpoint dedicado para verificar a disponibilidade de nome de usuário em tempo real durante o cadastro.
+
+Quando o nome estiver indisponível, retornar também sugestões automáticas baseadas no nome digitado (por exemplo, variações com números, ano atual ou sufixo “_togo”).
+
+Validação no Frontend
+
+No formulário de cadastro, realizar uma verificação automática ao digitar ou sair do campo de nome de usuário.
+
+Exibir mensagens interativas:
+
+Quando o nome estiver disponível → mensagem de sucesso visual (ex: verde).
+
+Quando estiver em uso → mensagem de erro visual (ex: vermelha).
+
+Exibir as sugestões retornadas pelo backend em formato de botões clicáveis para fácil seleção.
+
+Impedir o envio do formulário se o nome de usuário informado estiver indisponível.
+
+Feedback e Experiência do Usuário
+
+Exibir mensagens de status de forma clara, com animações leves e estilo coerente com o design atual.
+
+As sugestões devem ser apresentadas em uma pequena lista logo abaixo do campo de nome de usuário.
+
+Permitir que o usuário selecione uma das sugestões com um clique, preenchendo automaticamente o campo.
+
+Segurança e Boas Práticas
+
+A validação de unicidade deve ocorrer tanto no frontend quanto no backend.
+
+As mensagens devem ser amigáveis e informativas, sem exibir erros técnicos.
+
+Garantir que o comportamento do login, perfil e demais funcionalidades não seja afetado.
+
+✅ Resumo Simplificado
+
+Modificar o sistema ToGo para que o nome de usuário seja único, com verificação automática no momento do registro.
+Caso o nome já esteja em uso, o sistema deve avisar o usuário e sugerir alternativas semelhantes.
+Toda a validação deve ser amigável, responsiva e integrada ao design atual.

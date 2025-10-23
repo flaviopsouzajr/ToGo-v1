@@ -135,4 +135,68 @@ export function setupAuth(app: Express) {
       next(error);
     }
   });
+
+  // Check username availability and get suggestions
+  app.get("/api/check-username/:username", async (req, res, next) => {
+    try {
+      const { username } = req.params;
+      
+      if (!username || username.length < 3) {
+        return res.status(400).json({ 
+          message: "Nome de usuário deve ter pelo menos 3 caracteres" 
+        });
+      }
+
+      const existingUser = await storage.getUserByUsername(username);
+      const isAvailable = !existingUser;
+
+      if (isAvailable) {
+        return res.json({ 
+          available: true,
+          username 
+        });
+      }
+
+      // Generate suggestions if username is taken
+      const suggestions = await generateUsernameSuggestions(username);
+      
+      res.json({ 
+        available: false,
+        suggestions 
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+}
+
+// Helper function to generate username suggestions
+async function generateUsernameSuggestions(baseUsername: string): Promise<string[]> {
+  const suggestions: string[] = [];
+  const currentYear = new Date().getFullYear();
+  
+  // Remove any existing numbers from the end
+  const cleanBase = baseUsername.replace(/\d+$/, '');
+  
+  // Generate various suggestions
+  const potentialSuggestions = [
+    `${cleanBase}${currentYear}`,
+    `${cleanBase}_togo`,
+    `${cleanBase}${Math.floor(Math.random() * 1000)}`,
+    `${cleanBase}_${currentYear}`,
+    `${cleanBase}${Math.floor(Math.random() * 100)}`,
+    `togo_${cleanBase}`,
+  ];
+
+  // Check each suggestion and only return available ones
+  for (const suggestion of potentialSuggestions) {
+    if (suggestions.length >= 4) break; // Limit to 4 suggestions
+    
+    const existingUser = await storage.getUserByUsername(suggestion);
+    if (!existingUser) {
+      suggestions.push(suggestion);
+    }
+  }
+
+  return suggestions;
 }
