@@ -1,0 +1,71 @@
+Melhorar a velocidade de resposta e a fluidez geral do sistema ToGo, reduzindo tempos de carregamento e tornando a navegação mais leve — sem alterar ou prejudicar funcionalidades já existentes.
+
+🧩 Instruções para o Replit
+
+Implemente otimizações de performance no sistema ToGo, aplicando as seguintes melhorias:
+
+🔹 1. Otimização de Componentes e Renderização
+
+Analise e reduza re-renderizações desnecessárias em componentes React.
+
+Use React.memo e useCallback onde aplicável.
+
+Garanta que listas (como lugares, amigos e feed) usem chaves únicas (key) e renderização eficiente (map otimizado).
+
+🔹 2. Lazy Loading e Code Splitting
+
+Aplique lazy loading (via React.lazy + Suspense) em rotas e componentes grandes (ex: Mapa, Feed, Perfil).
+
+Utilize code splitting para carregar apenas o que o usuário precisa no momento.
+
+🔹 3. Otimização de Imagens
+
+Comprimir automaticamente imagens carregadas pelos usuários (ex: fotos de perfil, lugares, banners).
+
+Implementar carregamento progressivo (lazy loading) nas imagens exibidas em cards e modais.
+
+Usar srcset e picture para gerar versões adequadas conforme o tamanho da tela.
+
+🔹 4. Cache e Armazenamento Local
+
+Ativar cache de dados estáticos (ex: tipos de lugares, estados e cidades) via localStorage ou IndexedDB.
+
+Evitar requisições repetidas para informações que raramente mudam.
+
+🔹 5. Banco de Dados e API
+
+Implementar paginação e busca otimizada para evitar trazer todos os registros de uma vez (ex: feed, lugares).
+
+Garantir que o backend use consultas indexadas e responda com apenas os campos necessários.
+
+Ativar compressão nas respostas da API (gzip ou brotli).
+
+🔹 6. Performance de Interface (UI/UX)
+
+Adicionar spinners ou skeleton loaders em seções que dependem de carregamento de dados (Feed, Lugares, Mapa).
+
+Aplicar debounce em campos de busca e filtros para evitar requisições consecutivas a cada digitação.
+
+🔹 7. Responsividade e Renderização Adaptativa
+
+Ajustar renderização condicional: esconder elementos pesados (como mapas e imagens em alta) em telas pequenas.
+
+Utilizar media queries e otimização CSS para diferentes breakpoints.
+
+🔹 8. Monitoramento de Performance
+
+Adicionar logs leves de performance (ex: console.time() / console.timeEnd()) para identificar gargalos.
+
+Monitorar carregamento de componentes e tempo médio de resposta da API.
+
+⚠️ Restrições
+
+Não alterar fluxos de login, cadastro ou banco de dados.
+
+Não remover nem renomear tabelas, rotas ou componentes existentes.
+
+Toda otimização deve ser transparente ao usuário (sem mudar o comportamento das telas).
+
+✅ Resumo Simplificado
+
+“Melhorar a performance geral do sistema ToGo, aplicando técnicas de otimização de renderização, cache, lazy loading, compressão de imagens e busca paginada, garantindo fluidez e carregamento rápido sem alterar nenhuma funcionalidade existente.”
