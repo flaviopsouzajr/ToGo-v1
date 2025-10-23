@@ -121,9 +121,6 @@ export function PlaceDetailsModal({ place, isOpen, onClose }: PlaceDetailsModalP
                   <h3 className="font-semibold text-gray-700 dark:text-gray-300 mb-2">Avaliação</h3>
                   <div className="flex items-center space-x-2">
                     <StarRating rating={parseFloat(place.rating)} size="md" />
-                    <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                      {place.rating}/5
-                    </span>
                   </div>
                 </div>
               )}
