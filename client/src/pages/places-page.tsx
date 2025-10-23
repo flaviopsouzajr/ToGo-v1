@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { PlaceCard } from "@/components/place-card";
+import { PlaceCardSkeleton } from "@/components/place-card-skeleton";
 import { PlaceDetailsModal } from "@/components/place-details-modal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -14,15 +15,18 @@ import { Search, Filter, MapPin, ChevronDown, ChevronUp } from "lucide-react";
 import { PlaceWithType, PlaceType } from "@shared/schema";
 import { states } from "@/lib/estados-cidades";
 import { ProtectedRoute } from "@/lib/protected-route";
+import { useDebounce } from "@/hooks/use-debounce";
 
 function PlacesPageContent() {
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearch = useDebounce(searchInput, 500);
+  
   const [filters, setFilters] = useState({
     typeIds: [] as number[],
     stateId: "all",
     hasRodizio: null as boolean | null,
     isVisited: null as boolean | null,
     minRating: "all",
-    search: "",
   });
 
   const [selectedPlace, setSelectedPlace] = useState<PlaceWithType | null>(null);
@@ -31,7 +35,7 @@ function PlacesPageContent() {
   const [isFilterSticky, setIsFilterSticky] = useState(false);
 
   const { data: places = [], isLoading } = useQuery<PlaceWithType[]>({
-    queryKey: ["/api/places", filters],
+    queryKey: ["/api/places", { ...filters, search: debouncedSearch }],
     queryFn: async () => {
       const params = new URLSearchParams();
       
@@ -45,7 +49,7 @@ function PlacesPageContent() {
       if (filters.hasRodizio !== null) params.set("hasRodizio", filters.hasRodizio.toString());
       if (filters.isVisited !== null) params.set("isVisited", filters.isVisited.toString());
       if (filters.minRating && filters.minRating !== "all") params.set("minRating", filters.minRating);
-      if (filters.search) params.set("search", filters.search);
+      if (debouncedSearch) params.set("search", debouncedSearch);
 
       const res = await fetch(`/api/places?${params}`, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch places");
@@ -73,8 +77,8 @@ function PlacesPageContent() {
       hasRodizio: null,
       isVisited: null,
       minRating: "all",
-      search: "",
     });
+    setSearchInput("");
   };
 
   const handlePlaceClick = useCallback((place: PlaceWithType) => {
@@ -161,8 +165,8 @@ function PlacesPageContent() {
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
                         placeholder="Nome do lugar..."
-                        value={filters.search}
-                        onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
                         className="pl-10"
                       />
                     </div>
@@ -308,13 +312,8 @@ function PlacesPageContent() {
 
             {isLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="space-y-4">
-                    <Skeleton className="h-48 w-full rounded-lg" />
-                    <Skeleton className="h-4 w-2/3" />
-                    <Skeleton className="h-4 w-1/2" />
-                    <Skeleton className="h-4 w-3/4" />
-                  </div>
+                {[...Array(8)].map((_, i) => (
+                  <PlaceCardSkeleton key={i} />
                 ))}
               </div>
             ) : places.length > 0 ? (
