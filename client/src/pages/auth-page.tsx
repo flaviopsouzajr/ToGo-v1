@@ -42,7 +42,7 @@ export default function AuthPage() {
 
   // Check username availability with debounce
   const { data: usernameCheckData, isLoading: isCheckingUsername } = useQuery({
-    queryKey: ['/api/check-username', debouncedUsername],
+    queryKey: [`/api/check-username/${debouncedUsername}`],
     enabled: debouncedUsername.length >= 3,
   });
 
