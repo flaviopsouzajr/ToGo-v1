@@ -9,15 +9,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Shield, UserPlus, LogIn, Eye, EyeOff } from "lucide-react";
+import { MapPin, Shield, UserPlus, LogIn, Eye, EyeOff, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { Link } from "wouter";
 import { Navigation } from "@/components/navigation";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useQuery } from "@tanstack/react-query";
 
 export default function AuthPage() {
   const { user, loginMutation, registerMutation } = useAuth();
   const [, setLocation] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [username, setUsername] = useState("");
+  const [usernameSuggestions, setUsernameSuggestions] = useState<string[]>([]);
+  const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | null>(null);
+  const debouncedUsername = useDebounce(username, 500);
 
   // Redirect if already logged in - use useEffect to avoid render issues
   useEffect(() => {
@@ -33,6 +39,25 @@ export default function AuthPage() {
       loginForm.setValue("password", "");
     }
   }, [loginMutation.isError]);
+
+  // Check username availability with debounce
+  const { data: usernameCheckData, isLoading: isCheckingUsername } = useQuery({
+    queryKey: ['/api/check-username', debouncedUsername],
+    enabled: debouncedUsername.length >= 3,
+  });
+
+  // Update username availability status
+  useEffect(() => {
+    if (usernameCheckData) {
+      const data = usernameCheckData as { available: boolean; suggestions?: string[] };
+      setIsUsernameAvailable(data.available);
+      if (!data.available && data.suggestions) {
+        setUsernameSuggestions(data.suggestions);
+      } else {
+        setUsernameSuggestions([]);
+      }
+    }
+  }, [usernameCheckData]);
 
   const loginForm = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -57,7 +82,28 @@ export default function AuthPage() {
   };
 
   const onRegister = (data: InsertUser) => {
+    // Validate username availability before submitting
+    if (!isUsernameAvailable) {
+      registerForm.setError("username", {
+        type: "manual",
+        message: "Este nome de usuário não está disponível"
+      });
+      return;
+    }
     registerMutation.mutate(data);
+  };
+
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setUsername(value);
+    registerForm.setValue("username", value);
+    setIsUsernameAvailable(null);
+    setUsernameSuggestions([]);
+  };
+
+  const selectSuggestion = (suggestion: string) => {
+    setUsername(suggestion);
+    registerForm.setValue("username", suggestion);
   };
 
   return (
@@ -192,12 +238,71 @@ export default function AuthPage() {
 
                     <div>
                       <Label htmlFor="register-username">Nome de usuário</Label>
-                      <Input
-                        id="register-username"
-                        {...registerForm.register("username")}
-                        placeholder="Escolha um nome de usuário"
-                        required
-                      />
+                      <div className="relative">
+                        <Input
+                          id="register-username"
+                          data-testid="input-username"
+                          value={username}
+                          onChange={handleUsernameChange}
+                          placeholder="Escolha um nome de usuário"
+                          required
+                          className="pr-10"
+                        />
+                        <div className="absolute right-0 top-0 h-full px-3 flex items-center">
+                          {isCheckingUsername && username.length >= 3 && (
+                            <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                          )}
+                          {!isCheckingUsername && isUsernameAvailable === true && username.length >= 3 && (
+                            <CheckCircle2 className="h-4 w-4 text-green-600" data-testid="icon-username-available" />
+                          )}
+                          {!isCheckingUsername && isUsernameAvailable === false && username.length >= 3 && (
+                            <XCircle className="h-4 w-4 text-red-600" data-testid="icon-username-unavailable" />
+                          )}
+                        </div>
+                      </div>
+                      
+                      {username.length >= 3 && !isCheckingUsername && isUsernameAvailable === true && (
+                        <p className="text-sm text-green-600 mt-1 flex items-center" data-testid="text-username-available">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Nome de usuário disponível
+                        </p>
+                      )}
+                      
+                      {username.length >= 3 && !isCheckingUsername && isUsernameAvailable === false && (
+                        <div className="mt-1">
+                          <p className="text-sm text-red-600 flex items-center" data-testid="text-username-unavailable">
+                            <XCircle className="h-3 w-3 mr-1" />
+                            Nome de usuário não disponível
+                          </p>
+                          {usernameSuggestions.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-xs text-gray-600 mb-1">Sugestões disponíveis:</p>
+                              <div className="flex flex-wrap gap-2" data-testid="suggestions-container">
+                                {usernameSuggestions.map((suggestion) => (
+                                  <Button
+                                    key={suggestion}
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => selectSuggestion(suggestion)}
+                                    className="text-xs h-7 px-2 hover:bg-togo-primary hover:text-white"
+                                    data-testid={`suggestion-${suggestion}`}
+                                  >
+                                    {suggestion}
+                                  </Button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {username.length > 0 && username.length < 3 && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          Mínimo 3 caracteres
+                        </p>
+                      )}
+                      
                       {registerForm.formState.errors.username && (
                         <p className="text-sm text-red-600 mt-1">
                           {registerForm.formState.errors.username.message}
