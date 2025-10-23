@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Navigation } from "@/components/navigation";
 import { Footer } from "@/components/footer";
@@ -77,10 +77,10 @@ function PlacesPageContent() {
     });
   };
 
-  const handlePlaceClick = (place: PlaceWithType) => {
+  const handlePlaceClick = useCallback((place: PlaceWithType) => {
     setSelectedPlace(place);
     setIsModalOpen(true);
-  };
+  }, []);
 
   // Detectar quando o filtro está fixo no topo
   useEffect(() => {

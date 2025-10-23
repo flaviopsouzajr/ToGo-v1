@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, CheckCircle, Instagram } from "lucide-react";
@@ -10,7 +11,7 @@ interface PlaceCardProps {
   onClick?: () => void;
 }
 
-export function PlaceCard({ place, onClick }: PlaceCardProps) {
+export const PlaceCard = memo(function PlaceCard({ place, onClick }: PlaceCardProps) {
   return (
     <Card 
       className="overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer"
@@ -114,4 +115,4 @@ export function PlaceCard({ place, onClick }: PlaceCardProps) {
       </CardContent>
     </Card>
   );
-}
+});
